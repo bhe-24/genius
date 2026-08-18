@@ -163,6 +163,34 @@
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
         .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
+        /* ── EXIT MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px);
+            display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-box {
+            background: rgba(255, 255, 255, 0.98); padding: 24px 20px 28px; border-radius: 20px;
+            width: 100%; max-width: 340px; text-align: center; box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px); transition: transform 0.28s ease; border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        .modal-icon { font-size: 2.4rem; margin-bottom: 12px; color: var(--blue-dark); }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .modal-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
+        .modal-btn { padding: 12px; border-radius: 12px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+        
+        .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
+        .modal-btn-delete { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .modal-btn-cancel { background: rgba(203, 213, 225, 0.3); color: #475569; }
+
+        .modal-btn:active { transform: scale(0.97); }
+
     </style>
 </head>
 <body>
@@ -177,9 +205,10 @@
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
-            <a href="index.html" class="btn-back">
+            <!-- Tombol Keluar memicu Modal -->
+            <button class="btn-back" id="btn-exit" title="Keluar">
                 <i class="ph-bold ph-door-open"></i>
-            </a>
+            </button>
         </div>
 
         <!-- CHAT BODY -->
@@ -194,7 +223,7 @@
         <!-- INPUT FORM -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
-                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau /add..." autocomplete="off" rows="1" disabled></textarea>
+                <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
             </div>
             <button type="submit" class="btn-send" id="btn-send" disabled>
                 <i class="ph-fill ph-paper-plane-right"></i>
@@ -202,16 +231,30 @@
         </form>
     </div>
 
+    <!-- EXIT MODAL -->
+    <div id="exit-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="ph-duotone ph-sign-out"></i></div>
+            <div class="modal-title">Keluar dari Chat?</div>
+            <div class="modal-text">Kamu bisa menyimpan percakapan ini atau menghapusnya. <b>Tugas yang sudah di-/add akan tetap aman!</b></div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-save" onclick="handleExit('save')">Simpan & Kembali ke Dasbor</button>
+                <button class="modal-btn modal-btn-delete" id="btn-confirm-delete" onclick="handleExit('delete')">Hapus Riwayat Chat & Keluar</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- FIREBASE & LOGIKA CHAT SEDERHANA (YANG SUDAH STABIL) -->
+    <!-- FIREBASE & LOGIKA CHAT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase (Standar)
+        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -233,11 +276,12 @@
         const typingIndicator = document.getElementById('typing');
         const statusText = document.getElementById('status-text');
         const statusDot = document.getElementById('status-dot');
+        const exitModal = document.getElementById('exit-modal');
 
         let currentUser = null;
         let isFetchingFirstTime = true; 
 
-        // Auto Resize Textarea
+        // ── AUTO RESIZE & ENTER LOGIC ──
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
@@ -256,7 +300,7 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // Render Bubble Chat
+        // ── RENDER BUBBLE CHAT DENGAN FILTER THINKING PROCESS ──
         function renderBubble(sender, text, ts) {
             const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
@@ -264,7 +308,15 @@
 
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
-            bubble.innerHTML = text.replace(/\n/g, '<br>'); // Mengubah \n jadi enter HTML
+            
+            // FILTER PEMBERSIH: Menghilangkan teks proses berpikir (Qwen model)
+            let cleanText = text;
+            if (isBot) {
+                cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
+                cleanText = cleanText.replace(/Here's a thinking process:[\s\S]*?(?=\n\n|\n-|\n[A-Z])/i, '');
+            }
+            bubble.innerHTML = cleanText.trim().replace(/\n/g, '<br>'); 
+            
             grp.appendChild(bubble);
 
             const time = document.createElement('div');
@@ -276,7 +328,7 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
-        // PANTAU LOGIN & TARIK DATA FIREBASE (CARA SIMPLE)
+        // ── PANTAU LOGIN & LOAD CHAT ──
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -287,10 +339,7 @@
                 const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "asc"));
                 
                 onSnapshot(qChat, (snapshot) => {
-                    // Bersihkan layar saat load pertama kali
-                    if (isFetchingFirstTime) {
-                        chatBox.innerHTML = ''; 
-                    }
+                    if (isFetchingFirstTime) chatBox.innerHTML = ''; 
 
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
@@ -301,9 +350,8 @@
                         }
                     });
 
-                    // Pesan selamat datang jika kosong
                     if (snapshot.empty && isFetchingFirstTime) {
-                        renderBubble('bot', "Halo! Aku Genius AI.\nKamu bisa minta bantuan belajar atau ketik **/add [tugas] pada [hari]** untuk membuat jadwal.", Date.now());
+                        renderBubble('bot', "Halo! Aku Genius AI.\nKamu bisa tanya seputar materi, atau ketik **/add [nama tugas]** untuk menjadwalkannya ke Kalender secara otomatis! 🗓️", Date.now());
                     }
 
                     isFetchingFirstTime = false;
@@ -317,66 +365,109 @@
             }
         });
 
-        // PROSES KIRIM CHAT KE VERCEL API (CARA SIMPLE & STABIL)
+        // ── PROSES KIRIM CHAT & LOGIKA /ADD TUGAS ──
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
             if (!text || !currentUser) return;
 
-            // 1. Reset Input
             chatInput.value = '';
             chatInput.style.height = 'auto';
             btnSend.disabled = true;
 
-            // 2. Simpan di Firestore (User)
             const chatRef = collection(db, "users", currentUser.uid, "chats");
-            await addDoc(chatRef, { 
-                role: "user", 
-                message: text, 
-                createdAt: serverTimestamp() 
-            });
+            await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
 
-            // 3. Tampilkan Animasi Ngetik
+            // LOGIKA PENAMBAHAN TUGAS OTOMATIS JIKA DIAWALI "/add"
+            if (text.toLowerCase().startsWith('/add')) {
+                const taskInstruction = text.substring(4).trim() || "Tugas dari AI"; 
+                const titleGuess = taskInstruction.split(' ').slice(0, 4).join(' ') + "...";
+                
+                // Set default deadline ke besok
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+                const taskRef = collection(db, "users", currentUser.uid, "tasks");
+                await addDoc(taskRef, {
+                    title: "Tugas: " + titleGuess,
+                    instruction: taskInstruction,
+                    dateKey: dateKey, // Format kalender
+                    time: "Belum disetel",
+                    status: "pending", // Masuk ke Home Work
+                    createdAt: serverTimestamp()
+                });
+            }
+
             chatBox.appendChild(typingIndicator);
             typingIndicator.classList.add('visible');
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
             try {
-                // 4. Panggil Vercel API (Simple Fetch)
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text }) // HANYA KIRIM MESSAGE SAJA
+                    body: JSON.stringify({ message: text }) 
                 });
 
                 const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.error || data.reply || `HTTP Error ${response.status}`);
-                }
+                if (!response.ok) throw new Error(data.error || data.reply || `HTTP Error ${response.status}`);
 
-                // 5. Simpan Jawaban AI ke Firestore
-                const aiReply = data.reply || "Maaf, pesan kosong dari server.";
-                await addDoc(chatRef, { 
-                    role: "ai", 
-                    message: aiReply, 
-                    createdAt: serverTimestamp() 
-                });
+                const aiReply = data.reply || "Maaf, pesan kosong.";
+                await addDoc(chatRef, { role: "ai", message: aiReply, createdAt: serverTimestamp() });
                 
             } catch (error) {
-                console.error("Fetch API Error:", error);
-                // Simpan Pesan Error ke Firestore agar muncul di layar
                 await addDoc(chatRef, {
                     role: "ai",
-                    message: `⚠️ Gagal menghubungi server. Detail: ${error.message}`,
+                    message: `⚠️ Gagal menghubungi server AI. Detail: ${error.message}`,
                     createdAt: serverTimestamp()
                 });
             } finally {
-                // 6. Matikan Animasi Ngetik
                 typingIndicator.classList.remove('visible');
                 chatInput.focus();
             }
         });
+
+        // ── LOGIKA KELUAR DAN HAPUS CHAT ──
+        document.getElementById('btn-exit').addEventListener('click', () => {
+            exitModal.classList.add('active');
+            chatInput.blur();
+        });
+
+        window.closeModal = () => exitModal.classList.remove('active');
+
+        window.handleExit = async (action) => {
+            if (action === 'save') {
+                window.location.href = 'index.html';
+            } 
+            else if (action === 'delete') {
+                if (!currentUser) return window.location.href = 'index.html';
+
+                const btnDel = document.getElementById('btn-confirm-delete');
+                btnDel.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menghapus...';
+                btnDel.disabled = true;
+
+                try {
+                    // MENGHAPUS SEMUA DOKUMEN DI KOLEKSI "chats" SAJA
+                    const q = query(collection(db, "users", currentUser.uid, "chats"));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const deletePromises = [];
+                    querySnapshot.forEach((docSnap) => {
+                        deletePromises.push(deleteDoc(doc(db, "users", currentUser.uid, "chats", docSnap.id)));
+                    });
+
+                    await Promise.all(deletePromises);
+                    window.location.href = 'index.html';
+
+                } catch (error) {
+                    console.error("Gagal menghapus riwayat:", error);
+                    alert("Gagal menghapus riwayat chat.");
+                    window.location.href = 'index.html';
+                }
+            }
+        };
 
     </script>
 </body>
