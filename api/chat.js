@@ -32,7 +32,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'qwen-2.5-32b', // Model Qwen terbaru yang super cerdas
+                model: 'qwen3.6-27b', // Model Qwen terbaru yang super cerdas
                 messages: [
                     { 
                         role: 'system', 
