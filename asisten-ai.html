@@ -205,8 +205,7 @@
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
-            <!-- Tombol Keluar memicu Modal -->
-            <button class="btn-back" id="btn-exit" title="Keluar">
+            <button class="btn-back" id="btn-open-modal" title="Keluar">
                 <i class="ph-bold ph-door-open"></i>
             </button>
         </div>
@@ -223,7 +222,7 @@
         <!-- INPUT FORM -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
-                <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
+                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
             </div>
             <button type="submit" class="btn-send" id="btn-send" disabled>
                 <i class="ph-fill ph-paper-plane-right"></i>
@@ -238,9 +237,9 @@
             <div class="modal-title">Keluar dari Chat?</div>
             <div class="modal-text">Kamu bisa menyimpan percakapan ini atau menghapusnya. <b>Tugas yang sudah di-/add akan tetap aman!</b></div>
             <div class="modal-btns">
-                <button class="modal-btn modal-btn-save" onclick="handleExit('save')">Simpan & Kembali ke Dasbor</button>
-                <button class="modal-btn modal-btn-delete" id="btn-confirm-delete" onclick="handleExit('delete')">Hapus Riwayat Chat & Keluar</button>
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="modal-btn modal-btn-save" id="btn-save-exit">Simpan & Kembali ke Dasbor</button>
+                <button class="modal-btn modal-btn-delete" id="btn-delete-exit">Hapus Riwayat Chat & Keluar</button>
+                <button class="modal-btn modal-btn-cancel" id="btn-cancel-exit">Batal</button>
             </div>
         </div>
     </div>
@@ -300,7 +299,7 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // ── RENDER BUBBLE CHAT DENGAN FILTER THINKING PROCESS ──
+        // ── RENDER BUBBLE CHAT ──
         function renderBubble(sender, text, ts) {
             const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
@@ -309,7 +308,7 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
-            // FILTER PEMBERSIH: Menghilangkan teks proses berpikir (Qwen model)
+            // PEMBERSIH: Hapus teks proses berpikir bawaan model Qwen
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -351,7 +350,7 @@
                     });
 
                     if (snapshot.empty && isFetchingFirstTime) {
-                        renderBubble('bot', "Halo! Aku Genius AI.\nKamu bisa tanya seputar materi, atau ketik **/add [nama tugas]** untuk menjadwalkannya ke Kalender secara otomatis! 🗓️", Date.now());
+                        renderBubble('bot', "Halo! Aku Genius AI.\nKetik **/add [detail tugas]** untuk mengekstrak dan menjadwalkannya otomatis! 🗓️", Date.now());
                     }
 
                     isFetchingFirstTime = false;
@@ -364,6 +363,45 @@
                 renderBubble('bot', 'Akses ditolak. Silakan login terlebih dahulu.', Date.now());
             }
         });
+
+        // ── FUNGSI PERAPI TEKS TUGAS SECARA PINTAR ──
+        function formatTaskInput(rawText) {
+            let text = rawText.substring(4).trim(); // Buang kata '/add'
+            
+            // 1. Deteksi Tanggal Sederhana
+            let daysToAdd = 1; // Default: Besok
+            let timeStr = "Belum disetel";
+            
+            if (text.toLowerCase().includes('hari ini')) daysToAdd = 0;
+            if (text.toLowerCase().includes('lusa')) daysToAdd = 2;
+            if (text.toLowerCase().includes('minggu depan')) daysToAdd = 7;
+
+            // 2. Tentukan Tanggal Fix
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + daysToAdd);
+            const yyyy = targetDate.getFullYear();
+            const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(targetDate.getDate()).padStart(2, '0');
+            const dateKey = `${yyyy}-${mm}-${dd}`;
+
+            // 3. Ekstrak Judul secara Cerdas (Mencari kata setelah "tugas" atau "pr")
+            let title = "Tugas Baru";
+            const subjectMatch = text.match(/(?:tugas|pr|project)\s+([a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)?)/i);
+            
+            if (subjectMatch && subjectMatch[1]) {
+                // Huruf kapital di setiap awal kata judul
+                title = "Tugas " + subjectMatch[1].split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            } else {
+                // Jika tidak terdeteksi, ambil 2 kata pertama
+                title = "Tugas: " + text.split(' ').slice(0, 2).join(' ') + "...";
+            }
+
+            // 4. Instruksi dirapikan (Huruf kapital di awal)
+            let instruction = text.charAt(0).toUpperCase() + text.slice(1) + ".";
+
+            return { title, instruction, dateKey, time: timeStr };
+        }
+
 
         // ── PROSES KIRIM CHAT & LOGIKA /ADD TUGAS ──
         chatForm.addEventListener('submit', async (e) => {
@@ -378,22 +416,17 @@
             const chatRef = collection(db, "users", currentUser.uid, "chats");
             await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
 
-            // LOGIKA PENAMBAHAN TUGAS OTOMATIS JIKA DIAWALI "/add"
+            // LOGIKA PENAMBAHAN TUGAS OTOMATIS (YANG SUDAH DIRAPIKAN)
             if (text.toLowerCase().startsWith('/add')) {
-                const taskInstruction = text.substring(4).trim() || "Tugas dari AI"; 
-                const titleGuess = taskInstruction.split(' ').slice(0, 4).join(' ') + "...";
-                
-                // Set default deadline ke besok
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dateKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+                // Panggil fungsi perapi teks
+                const taskData = formatTaskInput(text);
 
                 const taskRef = collection(db, "users", currentUser.uid, "tasks");
                 await addDoc(taskRef, {
-                    title: "Tugas: " + titleGuess,
-                    instruction: taskInstruction,
-                    dateKey: dateKey, // Format kalender
-                    time: "Belum disetel",
+                    title: taskData.title, // Judul rapi (Misal: "Tugas Matematika")
+                    instruction: taskData.instruction, // Instruksi utuh dan rapi
+                    dateKey: taskData.dateKey, // Tanggal masuk ke Kalender
+                    time: taskData.time, 
                     status: "pending", // Masuk ke Home Work
                     createdAt: serverTimestamp()
                 });
@@ -429,45 +462,52 @@
             }
         });
 
-        // ── LOGIKA KELUAR DAN HAPUS CHAT ──
-        document.getElementById('btn-exit').addEventListener('click', () => {
+        // ── LOGIKA MODAL EXIT & DELETE (BEBAS BUG) ──
+        document.getElementById('btn-open-modal').addEventListener('click', () => {
             exitModal.classList.add('active');
             chatInput.blur();
         });
 
-        window.closeModal = () => exitModal.classList.remove('active');
+        document.getElementById('btn-cancel-exit').addEventListener('click', () => {
+            exitModal.classList.remove('active');
+        });
 
-        window.handleExit = async (action) => {
-            if (action === 'save') {
+        exitModal.addEventListener('click', (e) => {
+            if (e.target === exitModal) exitModal.classList.remove('active');
+        });
+
+        // TOMBOL: SIMPAN & KELUAR
+        document.getElementById('btn-save-exit').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // TOMBOL: HAPUS CHAT & KELUAR
+        document.getElementById('btn-delete-exit').addEventListener('click', async () => {
+            if (!currentUser) return window.location.href = 'index.html';
+
+            const btnDel = document.getElementById('btn-delete-exit');
+            btnDel.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menghapus...';
+            btnDel.disabled = true;
+
+            try {
+                // Hanya menghapus isi koleksi 'chats', koleksi 'tasks' dijamin aman!
+                const q = query(collection(db, "users", currentUser.uid, "chats"));
+                const querySnapshot = await getDocs(q);
+                
+                const deletePromises = [];
+                querySnapshot.forEach((docSnap) => {
+                    deletePromises.push(deleteDoc(doc(db, "users", currentUser.uid, "chats", docSnap.id)));
+                });
+
+                await Promise.all(deletePromises);
                 window.location.href = 'index.html';
-            } 
-            else if (action === 'delete') {
-                if (!currentUser) return window.location.href = 'index.html';
 
-                const btnDel = document.getElementById('btn-confirm-delete');
-                btnDel.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menghapus...';
-                btnDel.disabled = true;
-
-                try {
-                    // MENGHAPUS SEMUA DOKUMEN DI KOLEKSI "chats" SAJA
-                    const q = query(collection(db, "users", currentUser.uid, "chats"));
-                    const querySnapshot = await getDocs(q);
-                    
-                    const deletePromises = [];
-                    querySnapshot.forEach((docSnap) => {
-                        deletePromises.push(deleteDoc(doc(db, "users", currentUser.uid, "chats", docSnap.id)));
-                    });
-
-                    await Promise.all(deletePromises);
-                    window.location.href = 'index.html';
-
-                } catch (error) {
-                    console.error("Gagal menghapus riwayat:", error);
-                    alert("Gagal menghapus riwayat chat.");
-                    window.location.href = 'index.html';
-                }
+            } catch (error) {
+                console.error("Gagal menghapus riwayat:", error);
+                alert("Gagal menghapus riwayat chat. Periksa koneksi.");
+                window.location.href = 'index.html';
             }
-        };
+        });
 
     </script>
 </body>
