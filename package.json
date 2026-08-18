@@ -1,0 +1,10 @@
+{
+  "name": "api-penilai-cendekia",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "openai": "^4.0.0",
+    "@google/generative-ai": "^0.16.0",
+    "@google/genai": "^2.10.0"
+  }
+}
