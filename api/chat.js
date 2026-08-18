@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 2. FETCH LANGSUNG KE GROQ MENGGUNAKAN NATIVE FETCH (Tanpa Library)
+        // 2. FETCH LANGSUNG KE GROQ
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -32,7 +32,8 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'qwen3.6-27b', // Model Qwen terbaru yang super cerdas
+                // HARUS PERSIS SEPERTI DAFTAR: ada awalan "qwen/"
+                model: 'qwen/qwen3.6-27b', 
                 messages: [
                     { 
                         role: 'system', 
