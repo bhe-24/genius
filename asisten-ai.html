@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Asisten AI - Genius</title>
     
-    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
-    <script src="[https://unpkg.com/@phosphor-icons/web](https://unpkg.com/@phosphor-icons/web)"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
         :root {
-            /* Warna Adaptasi Genius */
+            /* TEMA GENIUS */
             --primary: #1E3A8A;
             --primary-light: #3B82F6;
             --accent: #3B82F6;
@@ -47,7 +48,7 @@
             overflow: hidden; position: relative; box-shadow: var(--shadow-lg);
         }
 
-        /* ── HEADER with Glassmorphism ── */
+        /* ── HEADER ── */
         .chat-header {
             background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
             backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -56,26 +57,17 @@
             box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15); padding-top: max(14px, env(safe-area-inset-top));
         }
 
-        .chat-header::after {
-            content: ''; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='[http://www.w3.org/2000/svg'%3E%3Cfilter](http://www.w3.org/2000/svg'%3E%3Cfilter) id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='256' height='256' fill='%23000' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
-            pointer-events: none; opacity: 0.3;
-        }
-
         .bot-avatar {
             width: 42px; height: 42px; background: var(--surface);
             border: 1.5px solid rgba(255, 255, 255, 0.3); border-radius: 12px;
             display: flex; justify-content: center; align-items: center; padding: 4px;
-            flex-shrink: 0; animation: floatAvatar 4s ease-in-out infinite;
-            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2); overflow: hidden;
+            flex-shrink: 0; box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2); overflow: hidden;
         }
         .bot-avatar img { width: 100%; height: 100%; object-fit: contain; }
 
-        @keyframes floatAvatar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-
         .header-info { flex: 1; min-width: 0; }
-        .header-info h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
-        .header-info p { font-size: 0.75rem; color: rgba(255, 255, 255, 0.75); display: flex; align-items: center; gap: 5px; margin-top: 1px; }
+        .header-info h2 { font-size: 1rem; font-weight: 700; line-height: 1.3; }
+        .header-info p { font-size: 0.75rem; color: rgba(255, 255, 255, 0.75); display: flex; align-items: center; gap: 5px; }
         
         .online-dot {
             width: 6px; height: 6px; background: #10b981; border-radius: 50%;
@@ -84,11 +76,10 @@
         @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); } 50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); } }
 
         .btn-back {
-            color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.2rem;
-            padding: 8px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.4rem;
+            padding: 8px; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
         }
-        .btn-back:hover { background: rgba(255, 255, 255, 0.15); color: white; transform: translateX(2px); }
 
         /* ── CHAT BODY ── */
         .chat-body {
@@ -96,16 +87,8 @@
             background: var(--surface); display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth;
         }
 
-        .chat-body::-webkit-scrollbar { width: 6px; }
-        .chat-body::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.6); border-radius: 99px; }
-
-        .date-divider {
-            display: flex; align-items: center; gap: 10px; color: var(--text-muted);
-            font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin: 8px 0 4px; animation: fadeIn 0.3s ease;
-        }
-        .date-divider::before, .date-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .chat-body::-webkit-scrollbar { width: 4px; }
+        .chat-body::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.6); border-radius: 10px; }
 
         .message-group { display: flex; flex-direction: column; gap: 3px; max-width: 80%; }
         .message-group.group-bot { align-self: flex-start; }
@@ -122,46 +105,24 @@
         }
 
         .bubble-bot {
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.95);
             color: var(--bubble-bot-text); border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
-            box-shadow: var(--shadow-md), inset 0 1px 2px rgba(255, 255, 255, 0.5); border: 1px solid rgba(225, 234, 245, 0.8);
+            box-shadow: var(--shadow-md); border: 1px solid rgba(225, 234, 245, 0.8);
         }
-        .message-group.group-bot .bubble:not(:first-child) { border-radius: var(--radius-bubble); }
-
-        .bubble-bot.bubble-warning { border-left: 3px solid var(--accent-dark); }
-
         .bubble-user {
             background: var(--bubble-user-bg); color: var(--bubble-user-text);
             border-radius: var(--radius-bubble) 4px var(--radius-bubble) var(--radius-bubble);
             box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25);
         }
-        .message-group.group-user .bubble:not(:first-child) { border-radius: var(--radius-bubble); }
 
-        .msg-time {
-            font-size: 0.68rem; color: var(--text-muted); padding: 0 4px; margin-top: 2px;
-            animation: fadeIn 0.3s ease 0.1s both;
-        }
+        .msg-time { font-size: 0.65rem; color: var(--text-muted); padding: 0 4px; margin-top: 2px; }
         .message-group.group-user .msg-time { text-align: right; }
 
-        /* FAQ CHIPS */
-        .faq-container {
-            display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0;
-            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.3s;
-        }
-        .faq-chip {
-            background: rgba(255, 255, 255, 0.9); border: 1px solid var(--accent); color: var(--accent);
-            padding: 8px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s ease; font-family: var(--font); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-        }
-        .faq-chip:hover { background: var(--accent); color: white; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3); }
-        .faq-chip:active { transform: scale(0.96); }
-
-        /* TYPING */
+        /* TYPING INDICATOR */
         .typing-indicator {
             display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
             padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
-            animation: popIn 0.2s ease; max-width: 78%;
         }
         .typing-indicator.visible { display: flex; }
 
@@ -173,16 +134,13 @@
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes typingBounce {
-            0%, 100% { transform: translateY(0); opacity: 0.4; }
-            50% { transform: translateY(-6px); opacity: 1; }
-        }
+        @keyframes typingBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 
         /* ── FOOTER INPUT ── */
         .chat-footer {
             padding: 12px 14px; padding-bottom: max(12px, env(safe-area-inset-bottom));
             background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(225, 234, 245, 0.8);
-            display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+            display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
         }
 
         .input-wrap {
@@ -193,42 +151,17 @@
 
         .input-box {
             flex: 1; border: none; background: transparent; font-size: 0.9rem; font-family: var(--font);
-            color: var(--text-primary); resize: none; max-height: 120px; line-height: 1.5; padding: 11px 0; outline: none;
+            color: var(--text-primary); resize: none; max-height: 100px; line-height: 1.5; padding: 11px 0; outline: none;
         }
-        .input-box::placeholder { color: #94a3b8; }
 
         .btn-send {
             background: var(--blue-gradient); color: white; border: none;
             width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35); flex-shrink: 0;
+            font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0;
         }
-        .btn-send:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45); }
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
-        .btn-send:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+        .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
-        /* EXIT MODAL */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px);
-            display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; padding: 20px;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-
-        .modal-box {
-            background: rgba(255, 255, 255, 0.98); padding: 24px 20px 28px; border-radius: 20px;
-            width: 100%; max-width: 340px; text-align: center; box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
-            transform: translateY(20px); transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .modal-overlay.active .modal-box { transform: translateY(0); }
-
-        .modal-icon { font-size: 2.4rem; margin-bottom: 12px; color: var(--blue-dark); }
-        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
-        .modal-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-
-        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
-        .modal-btn { padding: 12px; border-radius: 12px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
-        .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
-        .modal-btn-save:active { transform: scale(0.97); }
-        .modal-btn-cancel { background: rgba(203, 213, 225, 0.3); color: #475569; }
     </style>
 </head>
 <body>
@@ -237,15 +170,15 @@
         <!-- HEADER -->
         <div class="chat-header">
             <div class="bot-avatar">
-                <img src="[https://i.imgur.com/PpxQu9m.png](https://i.imgur.com/PpxQu9m.png)" alt="Genius">
+                <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius">
             </div>
             <div class="header-info">
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
-            <button class="btn-back" id="btn-exit" title="Keluar">
+            <a href="index.html" class="btn-back">
                 <i class="ph-bold ph-door-open"></i>
-            </button>
+            </a>
         </div>
 
         <!-- CHAT BODY -->
@@ -260,7 +193,7 @@
         <!-- INPUT FORM -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
-                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau pertanyaan..." autocomplete="off" rows="1" disabled></textarea>
+                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau /add..." autocomplete="off" rows="1" disabled></textarea>
             </div>
             <button type="submit" class="btn-send" id="btn-send" disabled>
                 <i class="ph-fill ph-paper-plane-right"></i>
@@ -268,25 +201,16 @@
         </form>
     </div>
 
-    <!-- Exit Modal -->
-    <div id="exit-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-icon"><i class="ph-duotone ph-sign-out"></i></div>
-            <div class="modal-title">Kembali ke Dasbor?</div>
-            <div class="modal-text">Riwayat obrolan Anda akan tetap tersimpan secara aman di sistem.</div>
-            <div class="modal-btns">
-                <button class="modal-btn modal-btn-save" onclick="window.location.href='index.html'">Ya, Kembali</button>
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Batal</button>
-            </div>
-        </div>
-    </div>
+    <!-- Script Library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- FIREBASE & LOGIKA CHAT -->
+    <!-- FIREBASE & LOGIKA CHAT SEDERHANA (YANG SUDAH STABIL) -->
     <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js)";
-        import { getAuth, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js)";
-        import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js)";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Konfigurasi Firebase (Standar)
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -300,28 +224,22 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Vercel Endpoint kita yang baru
-        const VERCEL_API_URL = "/api/chat";
-
-        let currentUser = null;
-        let currentUserName = "Pengguna";
-        let conversationHistory = []; // Untuk dikirim ke API agar AI ingat konteks
-        const MAX_HISTORY_TURNS = 4; // Berapa chat yang diingat
-
-        // DOM Elements
+        // Referensi UI
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const chatForm = document.getElementById('chat-form');
         const btnSend = document.getElementById('btn-send');
         const typingIndicator = document.getElementById('typing');
-        const exitModal = document.getElementById('exit-modal');
         const statusText = document.getElementById('status-text');
         const statusDot = document.getElementById('status-dot');
+
+        let currentUser = null;
+        let isFetchingFirstTime = true; 
 
         // Auto Resize Textarea
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
-            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             btnSend.disabled = chatInput.value.trim() === '';
         });
 
@@ -332,52 +250,20 @@
             }
         });
 
-        // ── Auth & Tarik Data Firebase ──
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                statusText.innerText = "Akses Ditolak";
-                statusDot.style.backgroundColor = "#EF4444";
-                chatInput.placeholder = "Silakan login terlebih dahulu.";
-                renderBubble('bot', 'Akses ditolak. Silakan login ke dalam sistem.', Date.now(), true, true);
-                return;
-            }
-
-            currentUser = user;
-            statusText.innerText = "Online";
-            statusDot.style.backgroundColor = "#10B981";
-            chatInput.disabled = false;
-
-            try {
-                const userSnap = await getDoc(doc(db, "users", user.uid));
-                if (userSnap.exists()) {
-                    currentUserName = userSnap.data().name.split(' ')[0] || "Pengguna";
-                }
-            } catch (e) {
-                console.error("Gagal ambil nama user:", e);
-            }
-
-            loadChatHistoryFromFirebase();
-        });
-
-        // Format waktu & teks
         function formatTime(ts) {
             const d = ts ? new Date(ts) : new Date();
-            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        }
-        function formatHTML(text) {
-            return String(text).replace(/\n/g, '<br>');
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
         // Render Bubble Chat
-        function renderBubble(sender, text, ts, animate = true, isWarning = false) {
-            const isBot = sender === 'bot';
+        function renderBubble(sender, text, ts) {
+            const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
             grp.className = `message-group ${isBot ? 'group-bot' : 'group-user'}`;
 
             const bubble = document.createElement('div');
-            bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}${isWarning ? ' bubble-warning' : ''}`;
-            if (!animate) bubble.style.animation = 'none';
-            bubble.innerHTML = formatHTML(text);
+            bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
+            bubble.innerHTML = text.replace(/\n/g, '<br>'); // Mengubah \n jadi enter HTML
             grp.appendChild(bubble);
 
             const time = document.createElement('div');
@@ -389,137 +275,108 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
-        // Render Pesan Selamat Datang (Jika kosong)
-        function renderWelcome() {
-            renderBubble('bot', `Halo, ${currentUserName}! Aku <b>Genius AI</b> 💡<br>Mau jadwalkan tugas atau bahas materi apa hari ini?`, Date.now());
+        // PANTAU LOGIN & TARIK DATA FIREBASE (CARA SIMPLE)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                statusText.innerText = "Online";
+                statusDot.style.backgroundColor = "#10B981";
+                chatInput.disabled = false;
+                
+                const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "asc"));
+                
+                onSnapshot(qChat, (snapshot) => {
+                    // Bersihkan layar saat load pertama kali
+                    if (isFetchingFirstTime) {
+                        chatBox.innerHTML = ''; 
+                    }
 
-            const faqContainer = document.createElement('div');
-            faqContainer.className = 'faq-container';
-            faqContainer.id = 'faq-box';
-            [
-                'Buat jadwal belajar',
-                'Bagaimana cara merangkum?',
-                'Bantu ingatkan tugasku'
-            ].forEach(q => {
-                const chip = document.createElement('button');
-                chip.className = 'faq-chip';
-                chip.type = 'button';
-                chip.textContent = q;
-                chip.onclick = () => {
-                    chatInput.value = q;
-                    chatInput.dispatchEvent(new Event('input'));
-                    chatForm.dispatchEvent(new Event('submit'));
-                };
-                faqContainer.appendChild(chip);
-            });
-            chatBox.appendChild(faqContainer);
-        }
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const data = change.doc.data();
+                            const sender = data.role === "ai" ? "bot" : "user";
+                            const timestamp = data.createdAt ? data.createdAt.toMillis() : Date.now();
+                            renderBubble(sender, data.message || data.text, timestamp);
+                        }
+                    });
 
-        // Muat Riwayat dari Firestore
-        async function loadChatHistoryFromFirebase() {
-            chatBox.innerHTML = '';
-            
-            const q = query(collection(db, "users", currentUser.uid, "chats"), orderBy("createdAt", "asc"));
-            const snapshot = await getDocs(q);
+                    // Pesan selamat datang jika kosong
+                    if (snapshot.empty && isFetchingFirstTime) {
+                        renderBubble('bot', "Halo! Aku Genius AI.\nKamu bisa minta bantuan belajar atau ketik **/add [tugas] pada [hari]** untuk membuat jadwal.", Date.now());
+                    }
 
-            if (snapshot.empty) {
-                renderWelcome();
-            } else {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const sender = data.role === "ai" ? "bot" : "user";
-                    const timestamp = data.createdAt ? data.createdAt.toMillis() : Date.now();
-                    
-                    renderBubble(sender, data.message || data.text, timestamp, false);
-                    
-                    // Simpan ke memori lokal untuk konteks obrolan (maksimal beberapa chat terakhir)
-                    conversationHistory.push({ role: data.role, content: data.message || data.text });
+                    isFetchingFirstTime = false;
                 });
-                chatBox.scrollTo({ top: chatBox.scrollHeight });
-            }
-        }
 
-        // ── PROSES SUBMIT CHAT ──
+            } else {
+                statusText.innerText = "Sesi Berakhir";
+                statusDot.style.backgroundColor = "#EF4444"; 
+                chatInput.placeholder = "Silakan login terlebih dahulu.";
+                renderBubble('bot', 'Akses ditolak. Silakan login terlebih dahulu.', Date.now());
+            }
+        });
+
+        // PROSES KIRIM CHAT KE VERCEL API (CARA SIMPLE & STABIL)
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
             if (!text || !currentUser) return;
 
-            const faqBox = document.getElementById('faq-box');
-            if (faqBox) faqBox.style.display = 'none';
-
-            // 1. Tampilkan di UI
-            renderBubble('user', text, Date.now());
-            
-            // 2. Simpan di Firestore (User)
-            const chatRef = collection(db, "users", currentUser.uid, "chats");
-            await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
-
-            // 3. Masukkan ke Memori Konteks
-            conversationHistory.push({ role: 'user', content: text });
-            if (conversationHistory.length > MAX_HISTORY_TURNS * 2) {
-                conversationHistory = conversationHistory.slice(-MAX_HISTORY_TURNS * 2);
-            }
-
-            // 4. Reset Input
+            // 1. Reset Input
             chatInput.value = '';
             chatInput.style.height = 'auto';
             btnSend.disabled = true;
 
-            // 5. Tampilkan Loading AI
+            // 2. Simpan di Firestore (User)
+            const chatRef = collection(db, "users", currentUser.uid, "chats");
+            await addDoc(chatRef, { 
+                role: "user", 
+                message: text, 
+                createdAt: serverTimestamp() 
+            });
+
+            // 3. Tampilkan Animasi Ngetik
             chatBox.appendChild(typingIndicator);
             typingIndicator.classList.add('visible');
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
             try {
-                // 6. Fetch API Vercel
-                const response = await fetch(VERCEL_API_URL, {
+                // 4. Panggil Vercel API (Simple Fetch)
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: text,
-                        userName: currentUserName,
-                        history: conversationHistory.slice(0, -1) // Kirim histori tanpa pesan terakhir (karena pesan terakhir sudah di-body)
-                    })
+                    body: JSON.stringify({ message: text }) // HANYA KIRIM MESSAGE SAJA
                 });
 
-                let data = null;
-                try { data = await response.json(); } catch(e) {}
+                const data = await response.json();
 
-                typingIndicator.classList.remove('visible');
-
-                if (response.ok && data && data.reply) {
-                    // Tampilkan Balasan AI
-                    renderBubble('bot', data.reply, Date.now());
-                    
-                    // Simpan balasan AI ke Firestore
-                    await addDoc(chatRef, { role: "ai", message: data.reply, createdAt: serverTimestamp() });
-                    
-                    conversationHistory.push({ role: 'assistant', content: data.reply });
-                } else {
-                    const errorMsg = data?.reply || data?.error || 'Koneksi bermasalah dengan server pusat.';
-                    renderBubble('bot', `⚠️ ${errorMsg}`, Date.now(), true, true);
+                if (!response.ok) {
+                    throw new Error(data.error || data.reply || `HTTP Error ${response.status}`);
                 }
 
-            } catch (networkErr) {
-                typingIndicator.classList.remove('visible');
-                renderBubble('bot', 'Koneksi terputus. Pastikan internetmu stabil ya! 🔌', Date.now(), true, true);
+                // 5. Simpan Jawaban AI ke Firestore
+                const aiReply = data.reply || "Maaf, pesan kosong dari server.";
+                await addDoc(chatRef, { 
+                    role: "ai", 
+                    message: aiReply, 
+                    createdAt: serverTimestamp() 
+                });
+                
+            } catch (error) {
+                console.error("Fetch API Error:", error);
+                // Simpan Pesan Error ke Firestore agar muncul di layar
+                await addDoc(chatRef, {
+                    role: "ai",
+                    message: `⚠️ Gagal menghubungi server. Detail: ${error.message}`,
+                    createdAt: serverTimestamp()
+                });
             } finally {
+                // 6. Matikan Animasi Ngetik
+                typingIndicator.classList.remove('visible');
                 chatInput.focus();
             }
         });
 
-        // ── EXIT MODAL LOGIC ──
-        document.getElementById('btn-exit').addEventListener('click', () => {
-            exitModal.classList.add('active');
-            chatInput.blur();
-        });
-
-        window.closeModal = () => exitModal.classList.remove('active');
-
-        exitModal.addEventListener('click', (e) => {
-            if (e.target === exitModal) window.closeModal();
-        });
     </script>
 </body>
 </html>
