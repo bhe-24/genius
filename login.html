@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Masuk - Genius App</title>
+    
+    <!-- PWA TAGS -->
+    <meta name="theme-color" content="#DCE8F5">
+
+    <!-- Fonts: Hanya menggunakan Poppins sesuai tema Genius -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Professional Icons (Phosphor Icons - Pengganti FontAwesome) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        :root {
+            --bg-color: #F8FAFC; 
+            --header-bg: #DCE8F5; 
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --primary: #8DA9C4; 
+            --primary-hover: #7A98B5;
+            --accent: #E2ECE9;
+            --white: #FFFFFF;
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.03);
+            --shadow-md: 0 15px 35px rgba(141, 169, 196, 0.15);
+            --border-radius: 20px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER MOBILE FIRST (Disamakan dengan index.html) */
+        .top-header {
+            width: 100%;
+            background-color: var(--header-bg);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+        .top-header img {
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .spacer { height: 100px; }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: var(--white);
+            padding: 35px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            position: relative;
+            margin-bottom: auto; 
+            border: 1px solid rgba(141, 169, 196, 0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .form-logo {
+            height: 60px; 
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-weight: 700; color: var(--text-main);
+            margin: 0 0 5px 0; font-size: 1.4rem;
+        }
+
+        .subtitle {
+            font-size: 0.85rem; color: var(--text-muted); 
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block; margin-bottom: 6px;
+            color: var(--text-main); font-weight: 600; font-size: 0.8rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(141, 169, 196, 0.15);
+        }
+
+        .toggle-password {
+            position: absolute; right: 15px; top: 38px;
+            cursor: pointer; color: var(--text-muted); font-size: 1.2rem;
+            transition: 0.2s;
+        }
+        .toggle-password:hover { color: var(--primary); }
+
+        /* --- STYLING CAPTCHA --- */
+        .captcha-group .captcha-container {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+            background: var(--bg-color); padding: 5px; border-radius: 12px; border: 1.5px solid #E2E8F0;
+        }
+        #captcha-canvas {
+            background: var(--white); border-radius: 8px; 
+            cursor: not-allowed;
+            border: 1px dashed #CBD5E1; flex: 1;
+            height: 45px;
+        }
+        .btn-refresh-captcha {
+            background: var(--primary); color: var(--white); border: none;
+            padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: 0.3s;
+            font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-refresh-captcha:hover { background: var(--primary-hover); transform: rotate(90deg); }
+
+        .btn {
+            width: 100%; padding: 14px;
+            background-color: var(--primary);
+            color: var(--white); border: none; border-radius: 30px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 10px rgba(141, 169, 196, 0.3);
+        }
+
+        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-register { background-color: #52796F; box-shadow: 0 4px 10px rgba(82, 121, 111, 0.3); }
+        .btn-register:hover { background-color: #43635a; }
+
+        .toggle-auth {
+            margin-top: 20px; color: var(--text-muted); cursor: pointer;
+            font-size: 0.85rem; transition: color 0.3s;
+        }
+        .toggle-auth:hover { color: var(--primary); }
+        .toggle-auth b { color: var(--primary); font-weight: 600; }
+
+        .forgot-link {
+            display: block; text-align: right; margin-top: 6px;
+            font-size: 0.8rem; color: var(--primary); cursor: pointer;
+            text-decoration: none; font-weight: 500;
+        }
+        .forgot-link:hover { text-decoration: underline; color: var(--primary-hover); }
+
+        .footer {
+            margin-top: 30px; margin-bottom: 20px;
+            text-align: center; font-size: 0.75rem; color: var(--text-muted); width: 100%;
+        }
+        .footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(248, 250, 252, 0.9); backdrop-filter: blur(5px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+        }
+        
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #E2E8F0;
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 380px) {
+            .container { padding: 25px 15px; } h3 { font-size: 1.3rem; }
+            .form-group input { padding: 10px 12px; font-size: 0.85rem; }
+            .toggle-password { top: 35px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-header">
+        <img src="https://i.imgur.com/PpxQu9m.png" alt="Logo Genius">
+    </div>
+
+    <div class="spacer"></div> 
+    
+    <div class="container">
+        <img src="https://i.imgur.com/PpxQu9m.png" alt="Logo Genius" class="form-logo">
+        
+        <div id="auth-view">
+            <!-- FORM LOGIN -->
+            <div id="login-form-container">
+                <h3>Masuk Sistem</h3>
+                <p class="subtitle">Selamat datang kembali di Genius!</p>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label>Alamat Email</label>
+                        <input type="email" id="username" placeholder="contoh: nama@email.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Kata Sandi</label>
+                        <input type="password" id="password" placeholder="Masukkan kata sandi" required autocomplete="current-password">
+                        <i class="ph ph-eye toggle-password" onclick="togglePass('password', this)"></i>
+                    </div>
+
+                    <!-- BLOK CAPTCHA -->
+                    <div class="form-group captcha-group">
+                        <label>Kode Keamanan</label>
+                        <div class="captcha-container">
+                            <canvas id="captcha-canvas" width="160" height="45"></canvas>
+                            <button type="button" id="btn-refresh-captcha" class="btn-refresh-captcha" title="Muat Ulang Kode">
+                                <i class="ph-bold ph-arrows-clockwise"></i>
+                            </button>
+                        </div>
+                        <input type="text" id="captcha-input" placeholder="Ketik karakter pada gambar" required autocomplete="off">
+                    </div>
+
+                    <a class="forgot-link" id="to-forgot">Lupa kata sandi?</a>
+                    <button type="submit" class="btn">Masuk</button>
+                </form>
+                <p class="toggle-auth" id="to-register">Belum menjadi anggota? <b>Daftar Sekarang</b></p>
+            </div>
+            
+            <!-- FORM REGISTER -->
+            <div id="register-form-container" class="hidden">
+                 <h3>Daftar Anggota</h3>
+                 <p class="subtitle">Mulai kelola waktu dan tugasmu hari ini.</p>
+                 <form id="register-form">
+                    <div class="form-group">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="reg-name" placeholder="Masukkan nama lengkap" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alamat Email</label>
+                        <input type="email" id="reg-email" placeholder="contoh: nama@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Buat Kata Sandi</label>
+                        <input type="password" id="reg-pass" placeholder="Minimal 6 karakter" required minlength="6">
+                        <i class="ph ph-eye toggle-password" onclick="togglePass('reg-pass', this)"></i>
+                    </div>
+                    <button type="submit" class="btn btn-register">Daftar Akun Baru</button>
+                 </form>
+                 <p class="toggle-auth" id="to-login">Sudah memiliki akun? <b>Masuk Sistem</b></p>
+            </div>
+
+            <!-- FORM VERIFIKASI KODE (via EmailJS) -->
+            <div id="verify-form-container" class="hidden">
+                <h3>Verifikasi Email</h3>
+                <p class="subtitle">Masukkan kode 6 digit yang telah kami kirim ke email<br><b id="verify-email-display" style="color:var(--primary);"></b></p>
+                <form id="verify-form">
+                    <div class="form-group">
+                        <label>Kode Verifikasi</label>
+                        <input type="text" id="verify-code" placeholder="123456" required maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" style="letter-spacing:8px; text-align:center; font-weight:700; font-size:1.2rem;">
+                    </div>
+                    <button type="submit" class="btn btn-register">Verifikasi Sekarang</button>
+                </form>
+                <p class="toggle-auth" id="resend-code" style="margin-top:14px;">Tidak menerima kode? <b>Kirim Ulang</b></p>
+                <p class="toggle-auth" id="back-to-login-from-verify"><i class="ph-bold ph-arrow-left"></i> Kembali ke Halaman Masuk</p>
+            </div>
+
+            <!-- FORM FORGOT PASSWORD -->
+            <div id="forgot-form-container" class="hidden">
+                <h3>Reset Sandi</h3>
+                <p class="subtitle">Kami akan mengirimkan tautan pemulihan ke email Anda.</p>
+                <form id="forgot-form">
+                    <div class="form-group">
+                        <label>Email Terdaftar</label>
+                        <input type="email" id="forgot-email" placeholder="contoh: nama@email.com" required>
+                    </div>
+                    <button type="submit" class="btn" style="background-color: #CB997E;">Kirim Tautan Pemulihan</button>
+                </form>
+                <p class="toggle-auth" id="back-to-login-from-forgot"><i class="ph-bold ph-arrow-left"></i> Kembali ke Halaman Masuk</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 Genius App. | <a href="#">Kebijakan Privasi</a></p>
+    </div>
+
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p id="loading-text" style="margin-top:20px; font-weight:600; color:var(--primary); font-size: 0.95rem; letter-spacing: 0.5px;">Memuat Sistem...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        
+        // Catatan: Saya menghapus import ActivityLogger karena itu file lokal. Agar sistem tidak error.
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0", 
+            authDomain: "mading-cf676.firebaseapp.com", 
+            projectId: "mading-cf676", 
+            storageBucket: "mading-cf676.firebasestorage.app", 
+            messagingSenderId: "72175203671", 
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let isLoggingIn = false;
+        let isRegistering = false; 
+
+        // ==========================================
+        // EMAILJS - KIRIM KODE VERIFIKASI
+        // ==========================================
+        const EMAILJS_SERVICE_ID  = "service_r3z10ye";
+        const EMAILJS_TEMPLATE_ID = "template_jjeu22b";
+        const EMAILJS_PUBLIC_KEY  = "2a9O5Q-7Uk0b7RpmG";
+        emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+        function generateVerificationCode() {
+            return String(Math.floor(100000 + Math.random() * 900000));
+        }
+
+        function getCodeExpiry(minutes = 15) {
+            return new Date(Date.now() + minutes * 60000).toISOString();
+        }
+
+        async function sendVerificationEmail(toEmail, toName, code) {
+            return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                to_email: toEmail,
+                to_name: toName || 'Pengguna',
+                verification_code: code
+            });
+        }
+
+        // ==========================================
+        // GENERATOR CAPTCHA GAMBAR DENGAN WARNA PASTEL
+        // ==========================================
+        let currentCaptchaText = "";
+
+        function generateCaptcha() {
+            const canvas = document.getElementById('captcha-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < 30; i++) {
+                ctx.fillStyle = `rgba(141, 169, 196, 0.2)`;
+                ctx.beginPath();
+                ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3 + 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+            currentCaptchaText = "";
+            for (let i = 0; i < 5; i++) {
+                currentCaptchaText += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            ctx.font = 'bold 26px "Poppins", sans-serif';
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i < currentCaptchaText.length; i++) {
+                const x = 20 + (i * 24);
+                const y = (canvas.height / 2) + (Math.random() * 10 - 5);
+                const angle = Math.random() * 0.5 - 0.25;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                // Warna disesuaikan dengan tema pastel Genius
+                ctx.fillStyle = i % 2 === 0 ? '#2D3748' : '#8DA9C4'; 
+                ctx.fillText(currentCaptchaText[i], 0, 0);
+                ctx.restore();
+            }
+
+            for (let i = 0; i < 4; i++) {
+                ctx.strokeStyle = `rgba(45, 55, 72, 0.3)`;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            document.getElementById('captcha-input').value = "";
+        }
+
+        generateCaptcha();
+        document.getElementById('btn-refresh-captcha').addEventListener('click', generateCaptcha);
+
+        // ==========================================
+        // UTILITAS & ROUTING
+        // ==========================================
+        const showLoading = (msg) => {
+            document.getElementById('loading-text').innerText = msg;
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        };
+        const hideLoading = () => document.getElementById('loading-overlay').classList.add('hidden');
+
+        // Logic mengganti ikon mata Phosphor Icons
+        window.togglePass = (inputId, icon) => {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text"; 
+                icon.classList.replace('ph-eye', 'ph-eye-closed');
+            } else {
+                input.type = "password"; 
+                icon.classList.replace('ph-eye-closed', 'ph-eye');
+            }
+        };
+
+        // Routing Genius: Setelah login langsung diarahkan ke halaman utama (index.html)
+        function routeUser() {
+            return 'index.html';
+        }
+
+        // ==========================================
+        // NAVIGASI ANTAR FORM (UI)
+        // ==========================================
+        const loginForm   = document.getElementById('login-form-container');
+        const regForm     = document.getElementById('register-form-container');
+        const verifyForm  = document.getElementById('verify-form-container');
+        const forgotForm  = document.getElementById('forgot-form-container');
+
+        function goToVerify(email) {
+            loginForm.classList.add('hidden');
+            regForm.classList.add('hidden');
+            forgotForm.classList.add('hidden');
+            verifyForm.classList.remove('hidden');
+            document.getElementById('verify-code').value = '';
+            document.getElementById('verify-email-display').textContent = email || '';
+        }
+
+        document.getElementById('to-register').onclick = () => { loginForm.classList.add('hidden'); verifyForm.classList.add('hidden'); regForm.classList.remove('hidden'); generateCaptcha(); };
+        document.getElementById('to-login').onclick    = () => { regForm.classList.add('hidden'); verifyForm.classList.add('hidden'); loginForm.classList.remove('hidden'); generateCaptcha(); };
+        document.getElementById('to-forgot').onclick   = () => { loginForm.classList.add('hidden'); verifyForm.classList.add('hidden'); forgotForm.classList.remove('hidden'); };
+        document.getElementById('back-to-login-from-forgot').onclick = () => { forgotForm.classList.add('hidden'); loginForm.classList.remove('hidden'); };
+
+        document.getElementById('back-to-login-from-verify').onclick = async () => {
+            isRegistering = false;
+            try { await signOut(auth); } catch (e) {}
+            verifyForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            generateCaptcha();
+        };
+
+        // ==========================================
+        // LISTENER AUTENTIKASI (Pengecekan Otomatis)
+        // ==========================================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (isLoggingIn || isRegistering) return; 
+
+                showLoading('Memverifikasi Sesi...');
+                try {
+                    const snap = await getDoc(doc(db, 'users', user.uid));
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const needsVerification = data.emailVerified === false;
+                        if (needsVerification) {
+                            hideLoading();
+                            isRegistering = true;
+                            goToVerify(user.email);
+                            return;
+                        }
+                        window.location.href = routeUser();
+                    } else {
+                        const newData = { name: user.displayName || 'Pengguna', email: user.email, emailVerified: true, createdAt: new Date().toISOString() };
+                        await setDoc(doc(db, 'users', user.uid), newData);
+                        window.location.href = routeUser();
+                    }
+                } catch (e) {
+                    hideLoading();
+                }
+            } else {
+                hideLoading();
+            }
+        });
+
+        // ==========================================
+        // 1. LOGIN
+        // ==========================================
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const inputCaptcha = document.getElementById('captcha-input').value;
+            if (inputCaptcha.toLowerCase() !== currentCaptchaText.toLowerCase()) {
+                Swal.fire({ icon: 'error', title: 'Kode Salah', text: 'Karakter keamanan tidak sesuai gambar.', confirmButtonColor: '#8DA9C4' });
+                generateCaptcha(); 
+                return;
+            }
+
+            showLoading('Memeriksa Kredensial...');
+            isLoggingIn = true;
+            
+            const email = document.getElementById('username').value.trim();
+            const pass  = document.getElementById('password').value;
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                showLoading('Memeriksa Status Akun...');
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                let data = snap.exists() ? snap.data() : null;
+
+                if (!data) {
+                    data = { name: user.email, email: user.email, emailVerified: true, createdAt: new Date().toISOString() };
+                    await setDoc(doc(db, 'users', user.uid), data);
+                }
+
+                if (data.emailVerified === false) {
+                    isLoggingIn = false;
+                    isRegistering = true; 
+                    hideLoading();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Email Belum Diverifikasi',
+                        html: `Akun Anda belum diverifikasi.<br><br>Silakan masukkan kode verifikasi yang telah dikirim ke <b>${email}</b>.`,
+                        confirmButtonColor: '#8DA9C4',
+                        confirmButtonText: 'Masukkan Kode'
+                    }).then(() => {
+                        goToVerify(email);
+                    });
+                    generateCaptcha();
+                    return;
+                }
+
+                showLoading('Memasuki Sistem...');
+                isLoggingIn = false;
+                window.location.href = routeUser();
+
+            } catch (error) {
+                isLoggingIn = false;
+                hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    text: 'Email atau kata sandi salah.',
+                    confirmButtonColor: '#8DA9C4'
+                });
+                generateCaptcha(); 
+            }
+        };
+
+        // ==========================================
+        // 2. REGISTER
+        // ==========================================
+        document.getElementById('register-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const name  = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass  = document.getElementById('reg-pass').value;
+            
+            showLoading('Mendaftarkan Identitas...');
+            isRegistering = true;
+
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                const code = generateVerificationCode();
+                const expiry = getCodeExpiry(15);
+
+                await setDoc(doc(db, 'users', cred.user.uid), {
+                    name, email, 
+                    emailVerified: false,
+                    verificationCode: code,
+                    codeExpiry: expiry,
+                    createdAt: new Date().toISOString()
+                });
+
+                try {
+                    await sendVerificationEmail(email, name, code);
+                } catch (mailErr) {
+                    console.error('Gagal mengirim email:', mailErr);
+                }
+
+                hideLoading();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Satu Langkah Lagi!',
+                    html: `Kami mengirimkan kode 6 digit ke <b>${email}</b>.<br><br>Cek juga folder SPAM.`,
+                    confirmButtonColor: '#8DA9C4',
+                    confirmButtonText: 'Masukkan Kode'
+                }).then(() => {
+                    document.getElementById('register-form').reset();
+                    goToVerify(email);
+                });
+
+            } catch (err) {
+                isRegistering = false;
+                hideLoading();
+                let errorMsg = err.message;
+                if (err.code === 'auth/email-already-in-use') errorMsg = 'Email ini sudah terdaftar. Silakan masuk (login).';
+                Swal.fire({ icon: 'error', title: 'Gagal Mendaftar', text: errorMsg, confirmButtonColor: '#8DA9C4' });
+            }
+        };
+
+        // ==========================================
+        // 3. VERIFIKASI KODE
+        // ==========================================
+        document.getElementById('verify-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const codeInput = document.getElementById('verify-code').value.trim();
+            const user = auth.currentUser;
+
+            if (!user) {
+                isRegistering = false;
+                Swal.fire({ icon: 'warning', title: 'Sesi Berakhir', text: 'Silakan masuk kembali.', confirmButtonColor: '#8DA9C4' }).then(() => {
+                    verifyForm.classList.add('hidden');
+                    loginForm.classList.remove('hidden');
+                    generateCaptcha();
+                });
+                return;
+            }
+
+            showLoading('Memeriksa Kode...');
+            try {
+                const uref = doc(db, 'users', user.uid);
+                const snap = await getDoc(uref);
+
+                if (!snap.exists()) return hideLoading();
+                const data = snap.data();
+
+                if (data.emailVerified) {
+                    isRegistering = false;
+                    hideLoading();
+                    window.location.href = routeUser();
+                    return;
+                }
+
+                if (!data.verificationCode || data.verificationCode !== codeInput) {
+                    hideLoading();
+                    Swal.fire({ icon: 'error', title: 'Kode Salah', text: 'Kode tidak sesuai.', confirmButtonColor: '#8DA9C4' });
+                    return;
+                }
+
+                if (data.codeExpiry && new Date(data.codeExpiry).getTime() < Date.now()) {
+                    hideLoading();
+                    Swal.fire({ icon: 'warning', title: 'Kedaluwarsa', text: 'Kode kedaluwarsa. Minta kode baru.', confirmButtonColor: '#8DA9C4' });
+                    return;
+                }
+
+                await updateDoc(uref, { emailVerified: true, verificationCode: null, codeExpiry: null });
+                isRegistering = false;
+                hideLoading();
+                
+                Swal.fire({
+                    icon: 'success', title: 'Berhasil!', text: 'Akun Anda aktif. Mengalihkan...',
+                    confirmButtonColor: '#8DA9C4', timer: 1800, showConfirmButton: false
+                }).then(() => {
+                    window.location.href = routeUser();
+                });
+
+            } catch (err) {
+                hideLoading();
+                Swal.fire({ icon: 'error', title: 'Kesalahan', text: err.message, confirmButtonColor: '#8DA9C4' });
+            }
+        };
+
+        // KIRIM ULANG KODE
+        let resendCooldown = false;
+        document.getElementById('resend-code').onclick = async () => {
+            if (resendCooldown) return;
+            const user = auth.currentUser;
+            if (!user) return;
+
+            showLoading('Mengirim Ulang...');
+            try {
+                const uref = doc(db, 'users', user.uid);
+                const snap = await getDoc(uref);
+                const data = snap.exists() ? snap.data() : null;
+
+                if (data && data.emailVerified) return hideLoading();
+
+                const code = generateVerificationCode();
+                const expiry = getCodeExpiry(15);
+                await updateDoc(uref, { verificationCode: code, codeExpiry: expiry });
+                await sendVerificationEmail(user.email, (data && data.name) || 'Pengguna', code);
+
+                hideLoading();
+                Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Kode baru terkirim.', confirmButtonColor: '#8DA9C4' });
+
+                resendCooldown = true;
+                setTimeout(() => { resendCooldown = false; }, 60000); 
+            } catch (err) {
+                hideLoading();
+                Swal.fire({ icon: 'error', title: 'Gagal', text: err.message, confirmButtonColor: '#8DA9C4' });
+            }
+        };
+
+        // ==========================================
+        // 4. FORGOT PASSWORD
+        // ==========================================
+        document.getElementById('forgot-form').onsubmit = async (e) => {
+            e.preventDefault();
+            showLoading('Mengirim Tautan...');
+            try {
+                await sendPasswordResetEmail(auth, document.getElementById('forgot-email').value);
+                hideLoading();
+                Swal.fire({
+                    icon: 'success', title: 'Terkirim!', text: 'Cek email Anda untuk tautan pemulihan.', confirmButtonColor: '#8DA9C4'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        forgotForm.classList.add('hidden');
+                        loginForm.classList.remove('hidden');
+                        generateCaptcha();
+                    }
+                });
+            } catch (error) {
+                hideLoading();
+                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Pastikan email terdaftar.', confirmButtonColor: '#8DA9C4' });
+            }
+        };
+    </script>
+</body>
+</html>
