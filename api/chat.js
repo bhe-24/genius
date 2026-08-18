@@ -1,30 +1,19 @@
 export default async function handler(req, res) {
-    // 1. IZINKAN CORS DARI FRONTEND
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Tangani preflight request dari browser
     if (req.method === 'OPTIONS') return res.status(200).end();
-    
-    // Hanya izinkan POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({ reply: 'Metode tidak diizinkan. Gunakan POST.' });
-    }
+    if (req.method !== 'POST') return res.status(405).json({ reply: 'Gunakan POST.' });
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (!GROQ_API_KEY) {
-        return res.status(500).json({ reply: 'Sistem error: API Key Groq belum di-setting di Vercel.' });
-    }
+    if (!GROQ_API_KEY) return res.status(500).json({ reply: 'Sistem error: API Key belum di-setting.' });
 
     const { message } = req.body;
-    if (!message) {
-        return res.status(400).json({ reply: 'Pesan tidak boleh kosong.' });
-    }
+    if (!message) return res.status(400).json({ reply: 'Pesan tidak boleh kosong.' });
 
     try {
-        // 2. FETCH LANGSUNG KE GROQ
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -32,35 +21,39 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                // HARUS PERSIS SEPERTI DAFTAR: ada awalan "qwen/"
                 model: 'qwen/qwen3.6-27b', 
                 messages: [
                     { 
                         role: 'system', 
-                        content: 'Kamu adalah Genius AI, asisten virtual pelajar. Jawablah dengan ramah, suportif, dan bahasa Indonesia santai (Aku/Kamu). JANGAN gunakan Markdown seperti bintang ganda untuk bold.' 
+                        content: `Kamu adalah Genius AI, asisten pelajar. Jawab dengan ramah, gunakan "Aku/Kamu".
+ATURAN MUTLAK:
+1. JANGAN gunakan Markdown (seperti bintang ganda).
+2. DILARANG KERAS menampilkan proses berpikir (seperti "Here's a thinking process"). Langsung berikan jawaban akhir.
+3. Jika pengguna mengetik '/add', beritahu bahwa tugasnya sudah otomatis tersimpan di Kalender dan Home Work.`
                     },
                     { role: 'user', content: message }
                 ],
-                temperature: 0.7,
+                temperature: 0.6,
                 max_tokens: 1000
             })
         });
 
         const data = await response.json();
 
-        // 3. TANGANI ERROR DARI GROQ
         if (!response.ok) {
-            console.error("Groq Error Response:", data);
-            return res.status(500).json({ 
-                reply: `Error dari Server Groq: ${data.error?.message || 'Tidak diketahui'}` 
-            });
+            return res.status(500).json({ reply: `Error API Groq: ${data.error?.message || 'Tidak diketahui'}` });
         }
 
-        // 4. KIRIM BALASAN SUKSES
-        return res.status(200).json({ reply: data.choices[0].message.content });
+        // TANGKAP JAWABAN AI
+        let aiReply = data.choices[0].message.content;
+
+        // FILTER AJAIB: Buang teks proses berpikir jika model masih bandel
+        aiReply = aiReply.replace(/Here's a thinking process:[\s\S]*?(?=\n\n|\n-|\nHai)/i, '').trim();
+        aiReply = aiReply.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+        return res.status(200).json({ reply: aiReply });
 
     } catch (error) {
-        console.error("Fetch Error:", error);
         return res.status(500).json({ reply: `Gagal melakukan request: ${error.message}` });
     }
 }
