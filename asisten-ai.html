@@ -2,182 +2,290 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Asisten AI - Genius</title>
     
-    <meta name="theme-color" content="#1E3A8A">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+    <script src="[https://unpkg.com/@phosphor-icons/web](https://unpkg.com/@phosphor-icons/web)"></script>
     
     <style>
         :root {
-            --bg-color: #F8FAFC; 
-            --header-bg: #FFFFFF; 
-            --text-main: #1E293B;
+            /* Warna Adaptasi Genius */
+            --primary: #1E3A8A;
+            --primary-light: #3B82F6;
+            --accent: #3B82F6;
+            --accent-dark: #1D4ED8;
+            --bg: #E2E8F0;
+            --surface: #F8FAFC;
+            --border: #E2E8F0;
+            --text-primary: #1E293B;
             --text-muted: #64748B;
-            --primary: #3B82F6; 
-            --primary-hover: #1E3A8A;
-            --white: #FFFFFF;
-            
-            --chat-user: #3B82F6; 
-            --chat-ai: #FFFFFF;
-            --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
+            --bubble-bot-bg: #FFFFFF;
+            --bubble-bot-text: #1E293B;
+            --bubble-user-bg: linear-gradient(135deg, var(--primary-light), var(--primary));
+            --bubble-user-text: #FFFFFF;
+            --radius-bubble: 18px;
+            --font: 'Poppins', sans-serif;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 28px rgba(0,0,0,0.12);
+            --glass-blur: 10px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        body, html {
-            height: 100dvh; 
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow: hidden; 
+        html, body {
+            font-family: var(--font); background: var(--bg);
+            height: 100dvh; width: 100vw; display: flex;
+            justify-content: center; align-items: center; overflow: hidden; position: fixed;
         }
 
-        .app-container {
-            display: flex; flex-direction: column;
-            height: 100%; width: 100%; max-width: 480px;
-            margin: 0 auto; background-color: var(--bg-color);
-            position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        /* ── CONTAINER ── */
+        .chat-app {
+            width: 100%; max-width: 480px; height: 100%;
+            background: var(--surface); display: flex; flex-direction: column;
+            overflow: hidden; position: relative; box-shadow: var(--shadow-lg);
         }
 
-        /* HEADER */
-        header {
-            background-color: var(--header-bg); padding: 14px 20px;
-            display: flex; align-items: center; gap: 15px;
-            box-shadow: var(--shadow-sm); z-index: 10;
-            padding-top: max(14px, env(safe-area-inset-top)); 
-            border-bottom: 2px solid var(--primary);
+        /* ── HEADER with Glassmorphism ── */
+        .chat-header {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
+            backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+            color: white; padding: 14px 18px; display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0; position: relative; z-index: 10; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15); padding-top: max(14px, env(safe-area-inset-top));
         }
 
-        .back-btn { color: var(--text-main); font-size: 24px; text-decoration: none; display: flex; }
-
-        .ai-profile { display: flex; align-items: center; gap: 10px; }
-        .ai-profile .icon {
-            width: 38px; height: 38px; background-color: var(--bg-color);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            border: 1px solid #E2E8F0; overflow: hidden; padding: 4px;
-        }
-        .ai-profile .icon img { width: 100%; height: 100%; object-fit: contain; }
-
-        .ai-profile .info h2 { font-size: 15px; font-weight: 700; color: var(--primary-hover); line-height: 1.2; }
-        .ai-profile .info p { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
-        .status-dot { width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; }
-
-        /* CHAT AREA */
-        .chat-area {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth;
+        .chat-header::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='[http://www.w3.org/2000/svg'%3E%3Cfilter](http://www.w3.org/2000/svg'%3E%3Cfilter) id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' result='noise'/%3E%3C/filter%3E%3Crect width='256' height='256' fill='%23000' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+            pointer-events: none; opacity: 0.3;
         }
 
-        .message { display: flex; flex-direction: column; max-width: 85%; animation: fadeIn 0.3s ease; }
-        .message.user { align-self: flex-end; align-items: flex-end; }
-        .message.ai { align-self: flex-start; align-items: flex-start; }
+        .bot-avatar {
+            width: 42px; height: 42px; background: var(--surface);
+            border: 1.5px solid rgba(255, 255, 255, 0.3); border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; padding: 4px;
+            flex-shrink: 0; animation: floatAvatar 4s ease-in-out infinite;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2); overflow: hidden;
+        }
+        .bot-avatar img { width: 100%; height: 100%; object-fit: contain; }
 
-        .bubble { padding: 12px 16px; font-size: 13px; line-height: 1.5; box-shadow: var(--shadow-sm); position: relative; }
+        @keyframes floatAvatar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        .header-info { flex: 1; min-width: 0; }
+        .header-info h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3; }
+        .header-info p { font-size: 0.75rem; color: rgba(255, 255, 255, 0.75); display: flex; align-items: center; gap: 5px; margin-top: 1px; }
         
-        .message.user .bubble {
-            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            color: var(--white); border-radius: 18px 18px 0px 18px;
+        .online-dot {
+            width: 6px; height: 6px; background: #10b981; border-radius: 50%;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); animation: pulse 2s infinite;
         }
-        .message.ai .bubble {
-            background-color: var(--chat-ai); color: var(--text-main);
-            border-radius: 18px 18px 18px 0px; border: 1px solid #E2E8F0;
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); } 50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); } }
+
+        .btn-back {
+            color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.2rem;
+            padding: 8px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .btn-back:hover { background: rgba(255, 255, 255, 0.15); color: white; transform: translateX(2px); }
+
+        /* ── CHAT BODY ── */
+        .chat-body {
+            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 16px 8px;
+            background: var(--surface); display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth;
         }
 
-        .time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .chat-body::-webkit-scrollbar { width: 6px; }
+        .chat-body::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.6); border-radius: 99px; }
 
-        /* TYPING INDICATOR */
+        .date-divider {
+            display: flex; align-items: center; gap: 10px; color: var(--text-muted);
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin: 8px 0 4px; animation: fadeIn 0.3s ease;
+        }
+        .date-divider::before, .date-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .message-group { display: flex; flex-direction: column; gap: 3px; max-width: 80%; }
+        .message-group.group-bot { align-self: flex-start; }
+        .message-group.group-user { align-self: flex-end; }
+
+        .bubble {
+            padding: 11px 16px; font-size: 0.85rem; line-height: 1.55; word-break: break-word;
+            animation: popIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.88) translateY(6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .bubble-bot {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            color: var(--bubble-bot-text); border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
+            box-shadow: var(--shadow-md), inset 0 1px 2px rgba(255, 255, 255, 0.5); border: 1px solid rgba(225, 234, 245, 0.8);
+        }
+        .message-group.group-bot .bubble:not(:first-child) { border-radius: var(--radius-bubble); }
+
+        .bubble-bot.bubble-warning { border-left: 3px solid var(--accent-dark); }
+
+        .bubble-user {
+            background: var(--bubble-user-bg); color: var(--bubble-user-text);
+            border-radius: var(--radius-bubble) 4px var(--radius-bubble) var(--radius-bubble);
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25);
+        }
+        .message-group.group-user .bubble:not(:first-child) { border-radius: var(--radius-bubble); }
+
+        .msg-time {
+            font-size: 0.68rem; color: var(--text-muted); padding: 0 4px; margin-top: 2px;
+            animation: fadeIn 0.3s ease 0.1s both;
+        }
+        .message-group.group-user .msg-time { text-align: right; }
+
+        /* FAQ CHIPS */
+        .faq-container {
+            display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0;
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.3s;
+        }
+        .faq-chip {
+            background: rgba(255, 255, 255, 0.9); border: 1px solid var(--accent); color: var(--accent);
+            padding: 8px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; font-family: var(--font); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+        .faq-chip:hover { background: var(--accent); color: white; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3); }
+        .faq-chip:active { transform: scale(0.96); }
+
+        /* TYPING */
         .typing-indicator {
-            display: none; padding: 12px 16px; background-color: var(--chat-ai);
-            border-radius: 18px 18px 18px 0px; align-self: flex-start; box-shadow: var(--shadow-sm);
-            align-items: center; gap: 4px; width: fit-content; border: 1px solid #E2E8F0;
+            display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
+            border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
+            animation: popIn 0.2s ease; max-width: 78%;
         }
-        .typing-indicator span {
-            width: 6px; height: 6px; background-color: var(--primary); border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
+        .typing-indicator.visible { display: flex; }
+
+        .dot {
+            width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+            animation: typingBounce 1.4s ease-in-out infinite;
         }
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
 
-        /* INPUT AREA */
-        .input-area {
-            background-color: var(--white); padding: 12px 16px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
-            display: flex; align-items: flex-end; gap: 10px;
-            box-shadow: 0 -2px 15px rgba(0,0,0,0.05); z-index: 10; border-top: 1px solid #E2E8F0;
+        @keyframes typingBounce {
+            0%, 100% { transform: translateY(0); opacity: 0.4; }
+            50% { transform: translateY(-6px); opacity: 1; }
         }
 
-        .input-wrapper {
-            flex: 1; background-color: var(--bg-color); border-radius: 20px;
-            display: flex; align-items: center; padding: 8px 16px; border: 1px solid #E2E8F0; transition: 0.3s;
+        /* ── FOOTER INPUT ── */
+        .chat-footer {
+            padding: 12px 14px; padding-bottom: max(12px, env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(225, 234, 245, 0.8);
+            display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
         }
-        .input-wrapper:focus-within { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        textarea {
-            width: 100%; background: transparent; border: none; outline: none; resize: none; max-height: 100px;
-            font-family: 'Poppins', sans-serif; font-size: 14px; color: var(--text-main); padding: 4px 0; line-height: 1.4;
+        .input-wrap {
+            flex: 1; display: flex; align-items: center; background: var(--bg);
+            border: 1.5px solid var(--border); border-radius: 22px; padding: 0 14px; transition: all 0.2s ease; min-height: 44px;
         }
-        textarea::placeholder { color: #94A3B8; font-size: 13px; }
+        .input-wrap:focus-within { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
 
-        .send-btn {
-            background-color: var(--primary); color: var(--white); border: none; width: 45px; height: 45px;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 22px;
-            cursor: pointer; transition: 0.3s; flex-shrink: 0; box-shadow: var(--shadow-sm);
+        .input-box {
+            flex: 1; border: none; background: transparent; font-size: 0.9rem; font-family: var(--font);
+            color: var(--text-primary); resize: none; max-height: 120px; line-height: 1.5; padding: 11px 0; outline: none;
         }
-        .send-btn:active { transform: scale(0.9); background-color: var(--primary-hover); }
-        .send-btn:disabled { background-color: #CBD5E1; cursor: not-allowed; box-shadow: none; }
+        .input-box::placeholder { color: #94a3b8; }
 
-        .system-message { text-align: center; font-size: 11px; color: var(--text-muted); margin: 10px 0; }
+        .btn-send {
+            background: var(--blue-gradient); color: white; border: none;
+            width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35); flex-shrink: 0;
+        }
+        .btn-send:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45); }
+        .btn-send:active:not(:disabled) { transform: scale(0.94); }
+        .btn-send:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        /* EXIT MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px);
+            display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-box {
+            background: rgba(255, 255, 255, 0.98); padding: 24px 20px 28px; border-radius: 20px;
+            width: 100%; max-width: 340px; text-align: center; box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px); transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        .modal-icon { font-size: 2.4rem; margin-bottom: 12px; color: var(--blue-dark); }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .modal-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
+        .modal-btn { padding: 12px; border-radius: 12px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+        .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
+        .modal-btn-save:active { transform: scale(0.97); }
+        .modal-btn-cancel { background: rgba(203, 213, 225, 0.3); color: #475569; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="chat-app">
         <!-- HEADER -->
-        <header>
-            <a href="index.html" class="back-btn">
-                <i class="ph-bold ph-caret-left"></i>
-            </a>
-            <div class="ai-profile">
-                <div class="icon">
-                    <!-- LOGO GENIUS -->
-                    <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Logo">
-                </div>
-                <div class="info">
-                    <h2>Genius AI</h2>
-                    <p><span class="status-dot" id="status-dot"></span> <span id="status-text">Menyambungkan...</span></p>
-                </div>
+        <div class="chat-header">
+            <div class="bot-avatar">
+                <img src="[https://i.imgur.com/PpxQu9m.png](https://i.imgur.com/PpxQu9m.png)" alt="Genius">
             </div>
-        </header>
+            <div class="header-info">
+                <h2>Genius AI</h2>
+                <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
+            </div>
+            <button class="btn-back" id="btn-exit" title="Keluar">
+                <i class="ph-bold ph-door-open"></i>
+            </button>
+        </div>
 
-        <!-- CHAT BOX -->
-        <main class="chat-area" id="chat-box">
-            <div class="typing-indicator" id="typing-indicator">
-                <span></span><span></span><span></span>
-            </div>
-        </main>
+        <!-- CHAT BODY -->
+        <div class="chat-body" id="chat-box">
+            <!-- Messages rendered here via Firebase -->
+        </div>
 
-        <!-- INPUT BOX -->
-        <footer class="input-area">
-            <div class="input-wrapper">
-                <textarea id="chat-input" rows="1" placeholder="Ketik pesan atau instruksi..." disabled></textarea>
+        <div class="typing-indicator" id="typing">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+
+        <!-- INPUT FORM -->
+        <form class="chat-footer" id="chat-form">
+            <div class="input-wrap">
+                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau pertanyaan..." autocomplete="off" rows="1" disabled></textarea>
             </div>
-            <button class="send-btn" id="send-btn" disabled>
+            <button type="submit" class="btn-send" id="btn-send" disabled>
                 <i class="ph-fill ph-paper-plane-right"></i>
             </button>
-        </footer>
+        </form>
     </div>
 
-    <!-- FIREBASE MODULE -->
+    <!-- Exit Modal -->
+    <div id="exit-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="ph-duotone ph-sign-out"></i></div>
+            <div class="modal-title">Kembali ke Dasbor?</div>
+            <div class="modal-text">Riwayat obrolan Anda akan tetap tersimpan secara aman di sistem.</div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-save" onclick="window.location.href='index.html'">Ya, Kembali</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIKA CHAT -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js)";
+        import { getAuth, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js)";
+        import { getFirestore, doc, getDoc, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "[https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js)";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
@@ -192,172 +300,226 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Vercel Endpoint kita yang baru
+        const VERCEL_API_URL = "/api/chat";
+
+        let currentUser = null;
+        let currentUserName = "Pengguna";
+        let conversationHistory = []; // Untuk dikirim ke API agar AI ingat konteks
+        const MAX_HISTORY_TURNS = 4; // Berapa chat yang diingat
+
+        // DOM Elements
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
+        const chatForm = document.getElementById('chat-form');
+        const btnSend = document.getElementById('btn-send');
+        const typingIndicator = document.getElementById('typing');
+        const exitModal = document.getElementById('exit-modal');
         const statusText = document.getElementById('status-text');
         const statusDot = document.getElementById('status-dot');
 
-        let currentUser = null;
-        let isFetchingFirstTime = true; 
-
-        // Auto-Resize Textarea
-        chatInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight < 100 ? this.scrollHeight : 100) + 'px';
-            sendBtn.disabled = this.value.trim() === '';
-        });
-
-        function scrollToBottom() {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // Render Pesan ke Layar
-        function appendMessage(sender, text, timestamp) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender);
-
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.classList.add('bubble');
-            
-            // Render text biasa (tanpa parser markdown agar tidak error)
-            bubbleDiv.innerHTML = text.replace(/\n/g, '<br>');
-
-            const timeSpan = document.createElement('span');
-            timeSpan.classList.add('time');
-            
-            let timeString = "";
-            if (timestamp && timestamp.toDate) {
-                const d = timestamp.toDate();
-                timeString = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-            } else {
-                const d = new Date();
-                timeString = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-            }
-            timeSpan.innerText = timeString;
-
-            messageDiv.appendChild(bubbleDiv);
-            messageDiv.appendChild(timeSpan);
-
-            chatBox.insertBefore(messageDiv, typingIndicator);
-            scrollToBottom();
-        }
-
-        // PANTAU LOGIN & TARIK DATA CHAT FIREBASE
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                statusText.innerText = "Online";
-                statusDot.style.backgroundColor = "#10B981";
-                chatInput.disabled = false;
-                
-                const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "asc"));
-                
-                onSnapshot(qChat, (snapshot) => {
-                    if (isFetchingFirstTime) {
-                        const messages = document.querySelectorAll('.message, .system-message');
-                        messages.forEach(msg => msg.remove());
-                    }
-
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            const data = change.doc.data();
-                            const sender = data.role === "ai" ? "ai" : "user";
-                            appendMessage(sender, data.message || data.text || "[Pesan Kosong]", data.createdAt);
-                        }
-                    });
-
-                    if (snapshot.empty && isFetchingFirstTime) {
-                        const sysMsg = document.createElement('div');
-                        sysMsg.classList.add('system-message');
-                        sysMsg.innerText = "Sistem siap. Mulai obrolan dengan Genius AI.";
-                        chatBox.insertBefore(sysMsg, typingIndicator);
-                    }
-
-                    isFetchingFirstTime = false;
-                    scrollToBottom();
-                });
-
-            } else {
-                statusText.innerText = "Sesi Berakhir";
-                statusDot.style.backgroundColor = "#EF4444"; 
-                chatInput.placeholder = "Silakan login terlebih dahulu.";
-                
-                const sysMsg = document.createElement('div');
-                sysMsg.classList.add('system-message');
-                sysMsg.innerText = "Akses ditolak. Anda tidak login ke dalam sistem.";
-                chatBox.insertBefore(sysMsg, typingIndicator);
-            }
-        });
-
-        // FUNGSI KIRIM PESAN KE API VERCEL
-        async function sendMessage() {
-            const messageText = chatInput.value.trim();
-            if (!messageText || !currentUser) return;
-
-            chatInput.value = '';
+        // Auto Resize Textarea
+        chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
-            sendBtn.disabled = true;
-            
-            // Push pesan User ke Firestore
-            const chatRef = collection(db, "users", currentUser.uid, "chats");
-            await addDoc(chatRef, {
-                role: "user",
-                message: messageText,
-                createdAt: serverTimestamp()
-            });
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+            btnSend.disabled = chatInput.value.trim() === '';
+        });
 
-            // Tampilkan Typing Indicator
-            typingIndicator.style.display = 'flex';
-            scrollToBottom();
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // ── Auth & Tarik Data Firebase ──
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                statusText.innerText = "Akses Ditolak";
+                statusDot.style.backgroundColor = "#EF4444";
+                chatInput.placeholder = "Silakan login terlebih dahulu.";
+                renderBubble('bot', 'Akses ditolak. Silakan login ke dalam sistem.', Date.now(), true, true);
+                return;
+            }
+
+            currentUser = user;
+            statusText.innerText = "Online";
+            statusDot.style.backgroundColor = "#10B981";
+            chatInput.disabled = false;
 
             try {
-                // Fetch Asli ke API Chat Vercel
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: messageText })
-                });
-
-                const data = await response.json();
-
-                // Tangkap jika terjadi error dari Backend Vercel
-                if (!response.ok) {
-                    throw new Error(data.reply || data.error || `HTTP Error ${response.status}`);
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                if (userSnap.exists()) {
+                    currentUserName = userSnap.data().name.split(' ')[0] || "Pengguna";
                 }
+            } catch (e) {
+                console.error("Gagal ambil nama user:", e);
+            }
 
-                // Push balasan AI ke Firestore
-                const aiReply = data.reply || data.message || "Pesan diterima, namun response kosong.";
-                await addDoc(chatRef, {
-                    role: "ai",
-                    message: aiReply,
-                    createdAt: serverTimestamp()
+            loadChatHistoryFromFirebase();
+        });
+
+        // Format waktu & teks
+        function formatTime(ts) {
+            const d = ts ? new Date(ts) : new Date();
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
+        function formatHTML(text) {
+            return String(text).replace(/\n/g, '<br>');
+        }
+
+        // Render Bubble Chat
+        function renderBubble(sender, text, ts, animate = true, isWarning = false) {
+            const isBot = sender === 'bot';
+            const grp = document.createElement('div');
+            grp.className = `message-group ${isBot ? 'group-bot' : 'group-user'}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}${isWarning ? ' bubble-warning' : ''}`;
+            if (!animate) bubble.style.animation = 'none';
+            bubble.innerHTML = formatHTML(text);
+            grp.appendChild(bubble);
+
+            const time = document.createElement('div');
+            time.className = 'msg-time';
+            time.textContent = formatTime(ts);
+            grp.appendChild(time);
+
+            chatBox.appendChild(grp);
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }
+
+        // Render Pesan Selamat Datang (Jika kosong)
+        function renderWelcome() {
+            renderBubble('bot', `Halo, ${currentUserName}! Aku <b>Genius AI</b> 💡<br>Mau jadwalkan tugas atau bahas materi apa hari ini?`, Date.now());
+
+            const faqContainer = document.createElement('div');
+            faqContainer.className = 'faq-container';
+            faqContainer.id = 'faq-box';
+            [
+                'Buat jadwal belajar',
+                'Bagaimana cara merangkum?',
+                'Bantu ingatkan tugasku'
+            ].forEach(q => {
+                const chip = document.createElement('button');
+                chip.className = 'faq-chip';
+                chip.type = 'button';
+                chip.textContent = q;
+                chip.onclick = () => {
+                    chatInput.value = q;
+                    chatInput.dispatchEvent(new Event('input'));
+                    chatForm.dispatchEvent(new Event('submit'));
+                };
+                faqContainer.appendChild(chip);
+            });
+            chatBox.appendChild(faqContainer);
+        }
+
+        // Muat Riwayat dari Firestore
+        async function loadChatHistoryFromFirebase() {
+            chatBox.innerHTML = '';
+            
+            const q = query(collection(db, "users", currentUser.uid, "chats"), orderBy("createdAt", "asc"));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                renderWelcome();
+            } else {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const sender = data.role === "ai" ? "bot" : "user";
+                    const timestamp = data.createdAt ? data.createdAt.toMillis() : Date.now();
+                    
+                    renderBubble(sender, data.message || data.text, timestamp, false);
+                    
+                    // Simpan ke memori lokal untuk konteks obrolan (maksimal beberapa chat terakhir)
+                    conversationHistory.push({ role: data.role, content: data.message || data.text });
                 });
-                
-            } catch (error) {
-                console.error("Fetch API Error:", error);
-                
-                // Menyimpan Error Asli ke database agar terbaca di layar chat
-                await addDoc(chatRef, {
-                    role: "ai",
-                    message: `⚠️ Gagal menghubungi server AI. Pastikan file api/chat.js di Vercel sudah diperbarui. Detail Error: ${error.message}`,
-                    createdAt: serverTimestamp()
-                });
-            } finally {
-                typingIndicator.style.display = 'none';
+                chatBox.scrollTo({ top: chatBox.scrollHeight });
             }
         }
 
-        // Listener Tombol
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); 
-                sendMessage();
+        // ── PROSES SUBMIT CHAT ──
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text || !currentUser) return;
+
+            const faqBox = document.getElementById('faq-box');
+            if (faqBox) faqBox.style.display = 'none';
+
+            // 1. Tampilkan di UI
+            renderBubble('user', text, Date.now());
+            
+            // 2. Simpan di Firestore (User)
+            const chatRef = collection(db, "users", currentUser.uid, "chats");
+            await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
+
+            // 3. Masukkan ke Memori Konteks
+            conversationHistory.push({ role: 'user', content: text });
+            if (conversationHistory.length > MAX_HISTORY_TURNS * 2) {
+                conversationHistory = conversationHistory.slice(-MAX_HISTORY_TURNS * 2);
+            }
+
+            // 4. Reset Input
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            btnSend.disabled = true;
+
+            // 5. Tampilkan Loading AI
+            chatBox.appendChild(typingIndicator);
+            typingIndicator.classList.add('visible');
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+
+            try {
+                // 6. Fetch API Vercel
+                const response = await fetch(VERCEL_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: text,
+                        userName: currentUserName,
+                        history: conversationHistory.slice(0, -1) // Kirim histori tanpa pesan terakhir (karena pesan terakhir sudah di-body)
+                    })
+                });
+
+                let data = null;
+                try { data = await response.json(); } catch(e) {}
+
+                typingIndicator.classList.remove('visible');
+
+                if (response.ok && data && data.reply) {
+                    // Tampilkan Balasan AI
+                    renderBubble('bot', data.reply, Date.now());
+                    
+                    // Simpan balasan AI ke Firestore
+                    await addDoc(chatRef, { role: "ai", message: data.reply, createdAt: serverTimestamp() });
+                    
+                    conversationHistory.push({ role: 'assistant', content: data.reply });
+                } else {
+                    const errorMsg = data?.reply || data?.error || 'Koneksi bermasalah dengan server pusat.';
+                    renderBubble('bot', `⚠️ ${errorMsg}`, Date.now(), true, true);
+                }
+
+            } catch (networkErr) {
+                typingIndicator.classList.remove('visible');
+                renderBubble('bot', 'Koneksi terputus. Pastikan internetmu stabil ya! 🔌', Date.now(), true, true);
+            } finally {
+                chatInput.focus();
             }
         });
 
+        // ── EXIT MODAL LOGIC ──
+        document.getElementById('btn-exit').addEventListener('click', () => {
+            exitModal.classList.add('active');
+            chatInput.blur();
+        });
+
+        window.closeModal = () => exitModal.classList.remove('active');
+
+        exitModal.addEventListener('click', (e) => {
+            if (e.target === exitModal) window.closeModal();
+        });
     </script>
 </body>
 </html>
