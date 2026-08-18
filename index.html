@@ -2,20 +2,16 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport khusus mobile agar ukuran selalu pas, tidak auto-zoom -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Genius Home Work - Asisten AI</title>
+    <title>Genius Home Work - Dashboard</title>
     
-    <!-- PWA Setup - Warna biru tua -->
     <meta name="theme-color" content="#1E3A8A">
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Professional Icons (Phosphor Icons) -->
+    <!-- Menggunakan Phosphor Icons (100% Gratis dan Open Source) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- OneSignal SDK untuk Notifikasi -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -23,24 +19,17 @@
         OneSignal.init({
           appId: "MASUKKAN_APP_ID_ONESIGNAL_KAMU_DISINI", 
           safari_web_id: "web.onesignal.auto.YOUR_SAFARI_ID",
-          notifyButton: {
-            enable: true,
-            colors: {
-                'circle.background': '#1E3A8A',
-                'circle.foreground': 'white',
-            }
-          },
+          notifyButton: { enable: true, colors: { 'circle.background': '#1E3A8A', 'circle.foreground': 'white' } },
         });
       });
     </script>
 
     <style>
         :root {
-            /* TEMA BARU: GRADASI BIRU MUDA KE TUA */
-            --bg-body: #E2E8F0; /* Background luar (jika dibuka di PC) */
-            --bg-app: #F8FAFC;  /* Background dalam aplikasi mobile */
-            --blue-light: #3B82F6; /* Biru Muda */
-            --blue-dark: #1E3A8A;  /* Biru Tua */
+            --bg-body: #E2E8F0; 
+            --bg-app: #F8FAFC;  
+            --blue-light: #3B82F6; 
+            --blue-dark: #1E3A8A;  
             --blue-gradient: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
             
             --text-main: #1E293B;
@@ -52,223 +41,106 @@
             --border-radius: 20px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; text-decoration: none; }
 
-        /* BODY DISET AGAR APLIKASI SELALU DI TENGAH BERUKURAN HP */
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            display: flex;
-            justify-content: center;
-        }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
 
-        /* WRAPPER KHUSUS MOBILE FIRST (Maksimal lebar HP) */
         .mobile-wrapper {
-            width: 100%;
-            max-width: 480px; /* Ukuran standar HP */
-            min-height: 100vh;
-            background-color: var(--bg-app);
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            position: relative;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
+            width: 100%; max-width: 480px; min-height: 100vh;
+            background-color: var(--bg-app); position: relative; overflow-x: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
-        /* HEADER MOBILE */
+        /* HEADER APP */
         header {
-            background-color: var(--white);
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-            border-bottom: 3px solid var(--blue-light);
+            background-color: var(--white); padding: 14px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand img { height: 38px; object-fit: contain; }
+        .brand-text h1 { font-size: 14px; font-weight: 700; color: var(--blue-dark); line-height: 1.1; }
+        .brand-text span { font-size: 11px; font-weight: 500; color: var(--blue-light); }
 
-        .brand img {
-            height: 38px;
-            object-fit: contain;
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .brand-text h1 {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--blue-dark);
-            line-height: 1.1;
-            letter-spacing: 0.5px;
-        }
-        
-        .brand-text span {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--blue-light);
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            padding: 8px 14px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--blue-dark);
-            border: 1.5px solid var(--blue-light);
-        }
-
-        .btn-primary {
-            background: var(--blue-gradient);
-            color: var(--white);
-            box-shadow: var(--shadow-sm);
-        }
-
+        .auth-buttons { display: flex; gap: 8px; }
+        .btn { padding: 8px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-outline { background-color: transparent; color: var(--blue-dark); border: 1.5px solid var(--blue-light); }
+        .btn-primary { background: var(--blue-gradient); color: var(--white); box-shadow: var(--shadow-sm); border: none; }
         .btn-primary:active { transform: scale(0.95); }
 
-        /* HERO SECTION (GRADASI BIRU) */
-        .hero {
-            background: var(--blue-gradient);
-            padding: 40px 20px 50px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--white);
-            border-bottom-left-radius: 30px;
-            border-bottom-right-radius: 30px;
-            box-shadow: var(--shadow-md);
-        }
-
-        .hero h2 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-
-        .hero p {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 25px;
-            max-width: 95%;
-        }
-
-        .hero-img {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .hero-img i {
-            font-size: 50px;
-            color: var(--white);
-        }
-
-        .cta-btn {
-            padding: 12px 28px;
-            font-size: 14px;
-            border-radius: 30px;
-            background: var(--white);
-            color: var(--blue-dark);
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: 0.3s;
+        /* DASHBOARD HERO SECTION */
+        .dashboard-hero {
+            background: var(--blue-gradient); padding: 30px 20px 40px;
+            color: var(--white); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+            box-shadow: var(--shadow-md); position: relative; display: flex; flex-direction: column; gap: 15px;
         }
         
-        .cta-btn:active { background: #f1f5f9; transform: scale(0.95); }
+        .dash-header { display: flex; align-items: center; gap: 15px; }
+        .dash-logo { width: 55px; height: 55px; background: rgba(255,255,255,0.9); border-radius: 16px; padding: 5px; object-fit: contain; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        .dash-greeting h2 { font-size: 20px; font-weight: 700; line-height: 1.2; margin-bottom: 2px; }
+        .dash-greeting p { font-size: 11px; opacity: 0.9; display: flex; align-items: center; gap: 5px; }
 
-        /* FEATURES MOBILE GRID */
-        .features {
-            padding: 30px 20px 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: -20px; /* Menarik ke atas agar menimpa hero section sedikit */
+        .task-alert {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 15px; border-radius: 12px; font-size: 12px; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px);
+            display: none; /* Sembunyikan default jika tidak ada tugas */
+        }
+        .task-alert i { font-size: 18px; color: #FCD34D; }
+
+        /* RECENT CHAT WIDGET */
+        .recent-chat-container { padding: 0 20px; margin-top: -20px; z-index: 10; position: relative; }
+        .recent-chat-card {
+            background: var(--white); border-radius: 20px; padding: 16px;
+            box-shadow: var(--shadow-md); border: 1px solid #E2E8F0;
+        }
+        .recent-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .recent-header h3 { font-size: 13px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
+        .recent-header h3 i { color: var(--blue-light); font-size: 16px; }
+        .recent-header a { font-size: 11px; color: var(--blue-light); font-weight: 600; }
+        
+        .chat-bubble { background: var(--bg-app); padding: 12px; border-radius: 12px; border-bottom-left-radius: 2px; border: 1px solid #E2E8F0; }
+        .chat-text {
+            font-size: 12px; color: var(--text-main); line-height: 1.5;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .chat-empty { font-size: 12px; color: var(--text-muted); font-style: italic; text-align: center; padding: 10px 0; }
+
+        /* MAIN MENU GRID */
+        .menu-section { padding: 25px 20px 40px; flex: 1; }
+        .menu-title { font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; }
+        
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .menu-card {
+            background-color: var(--white); padding: 20px 15px; border-radius: var(--border-radius);
+            text-align: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s;
+            display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        .menu-card:active { transform: scale(0.96); box-shadow: none; }
+
+        .menu-icon {
+            width: 50px; height: 50px; border-radius: 16px; background: rgba(59, 130, 246, 0.1);
+            display: flex; justify-content: center; align-items: center; margin-bottom: 12px;
+            font-size: 26px; color: var(--blue-light);
         }
 
-        .feature-card {
-            background-color: var(--white);
-            padding: 20px 15px;
-            border-radius: var(--border-radius);
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(59, 130, 246, 0.1);
-        }
+        .menu-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--blue-dark); }
+        .menu-card p { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 
-        .feature-card:active { transform: scale(0.96); }
-
-        .feature-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 16px;
-            background: rgba(59, 130, 246, 0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 26px;
-            color: var(--blue-light);
-        }
-
-        .feature-card h3 {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: var(--blue-dark);
-        }
-
-        .feature-card p {
-            font-size: 11px;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
+        /* FOOTER PROFESIONAL */
+        footer { background: var(--white); border-top: 1px solid #E2E8F0; padding: 20px; text-align: center; }
+        .footer-brand { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .footer-brand img { height: 20px; opacity: 0.8; }
+        .footer-brand span { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+        
+        .footer-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .footer-links a { font-size: 11px; color: var(--blue-light); font-weight: 500; transition: 0.3s; }
+        .footer-links a:hover { color: var(--blue-dark); text-decoration: underline; }
+        
+        .copyright { font-size: 10px; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -290,80 +162,195 @@
             </div>
         </header>
 
-        <!-- HERO SECTION -->
-        <main style="flex:1;">
-            <section class="hero">
-                <div class="hero-img">
-                    <i class="ph-fill ph-rocket-launch"></i>
+        <main style="flex:1; display:flex; flex-direction:column;">
+            
+            <!-- DASHBOARD HERO -->
+            <section class="dashboard-hero">
+                <div class="dash-header">
+                    <img src="https://i.imgur.com/PpxQu9m.png" alt="Logo" class="dash-logo">
+                    <div class="dash-greeting">
+                        <h2 id="user-greeting">Halo, Pengguna!</h2>
+                        <p><i class="ph-bold ph-clock"></i> <span id="datetime-display">Memuat waktu...</span></p>
+                    </div>
                 </div>
-                <h2>Kelola Tugas & Waktu Lebih Cerdas</h2>
-                <p>Aplikasi web interaktif dengan Asisten AI. Ekstrak jadwal, kelola PR, dan kumpulkan tugas dalam satu sentuhan.</p>
-                <a href="login.html" class="btn cta-btn">
-                    Mulai Sekarang <i class="ph-bold ph-arrow-right"></i>
-                </a>
+                
+                <div class="task-alert" id="task-alert">
+                    <i class="ph-fill ph-warning-circle"></i>
+                    <span id="task-alert-text">Memeriksa tugas...</span>
+                </div>
             </section>
 
-            <!-- FITUR UTAMA -->
-            <section class="features">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="ph-duotone ph-robot"></i></div>
-                    <h3>Asisten AI</h3>
-                    <p>Chat pintar penjadwalan otomatis.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="ph-duotone ph-calendar-check"></i></div>
-                    <h3>Kalender</h3>
-                    <p>Pantau deadline secara visual.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="ph-duotone ph-books"></i></div>
-                    <h3>Home Work</h3>
-                    <p>Ruang pengerjaan tugas & AI.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="ph-duotone ph-archive-box"></i></div>
-                    <h3>Finish System</h3>
-                    <p>Arsip tugas & bukti berkas.</p>
+            <!-- WIDGET RECENT CHAT AI -->
+            <section class="recent-chat-container">
+                <div class="recent-chat-card">
+                    <div class="recent-header">
+                        <h3><i class="ph-fill ph-robot"></i> Chat Terakhir</h3>
+                        <a href="asisten-ai.html">Lihat Semua</a>
+                    </div>
+                    
+                    <div class="chat-bubble" id="recent-chat-bubble">
+                        <p class="chat-empty">Memeriksa riwayat obrolan...</p>
+                    </div>
                 </div>
             </section>
+
+            <!-- MENU UTAMA APLIKASI (Tombol Terhubung) -->
+            <section class="menu-section">
+                <div class="menu-title">Menu Utama</div>
+                
+                <div class="menu-grid">
+                    <!-- Tombol 1: Terhubung ke asisten-ai.html -->
+                    <a href="asisten-ai.html" class="menu-card">
+                        <div class="menu-icon"><i class="ph-fill ph-chat-teardrop-text"></i></div>
+                        <h3>Asisten AI</h3>
+                        <p>Chat pintar & jadwal otomatis.</p>
+                    </a>
+                    
+                    <!-- Tombol 2: Terhubung ke kalender.html -->
+                    <a href="kalender.html" class="menu-card">
+                        <div class="menu-icon"><i class="ph-fill ph-calendar-check"></i></div>
+                        <h3>Kalender</h3>
+                        <p>Pantau deadline visual.</p>
+                    </a>
+                    
+                    <!-- Tombol 3: Terhubung ke home-work.html -->
+                    <a href="home-work.html" class="menu-card">
+                        <div class="menu-icon"><i class="ph-fill ph-books"></i></div>
+                        <h3>Home Work</h3>
+                        <p>Ruang kerja & bantuan AI.</p>
+                    </a>
+                    
+                    <!-- Tombol 4: Terhubung ke finish.html -->
+                    <a href="finish.html" class="menu-card">
+                        <div class="menu-icon"><i class="ph-fill ph-archive-box"></i></div>
+                        <h3>Finish System</h3>
+                        <p>Arsip & bukti tugas selesai.</p>
+                    </a>
+                </div>
+            </section>
+
         </main>
+
+        <!-- FOOTER WEBSITE PROFESIONAL -->
+        <footer>
+            <div class="footer-brand">
+                <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
+                <span>GENIUS HOME WORK</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Beranda</a>
+                <a href="#">Kebijakan Privasi</a>
+                <a href="#">Syarat & Ketentuan</a>
+                <a href="#">Bantuan</a>
+            </div>
+            <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
+        </footer>
 
     </div> <!-- END MOBILE WRAPPER -->
 
-    <!-- FIREBASE MODULE -->
+    <!-- LOGIKA JAVASCRIPT & DATABASE REALTIME -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // 1. UPDATE JAM & TANGGAL REAL-TIME
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('id-ID', options);
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('datetime-display').innerText = `${dateStr} • ${timeStr} WIB`;
+            document.getElementById('current-year').innerText = now.getFullYear();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
             projectId: "mading-cf676",
             storageBucket: "mading-cf676.firebasestorage.app",
             messagingSenderId: "72175203671",
-            appId: "1:72175203671:web:7a0676a55beb64bc96ba12",
-            measurementId: "G-590P9LLK7J"
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12"
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
+        // Referensi UI
         const authContainer = document.getElementById('auth-container');
+        const userGreeting = document.getElementById('user-greeting');
+        const taskAlert = document.getElementById('task-alert');
+        const taskAlertText = document.getElementById('task-alert-text');
+        const recentChatBubble = document.getElementById('recent-chat-bubble');
 
-        onAuthStateChanged(auth, (user) => {
+        // 3. LOGIKA TARIK DATA ASLI
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // UI Jika Login
                 authContainer.innerHTML = `
-                    <a href="profil.html" class="btn btn-primary" style="padding: 8px 16px;">
+                    <a href="profil.html" class="btn btn-primary">
                         <i class="ph-bold ph-user"></i> Profil
                     </a>
                 `;
+                
+                try {
+                    // A. TAMPILKAN NAMA ASLI
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) {
+                        const namaLengkap = docSnap.data().name || 'Pengguna';
+                        const namaPanggilan = namaLengkap.split(' ')[0];
+                        userGreeting.innerText = `Halo, ${namaPanggilan}!`;
+                    }
+
+                    // B. HITUNG JUMLAH TUGAS PENDING ASLI DARI DATABASE
+                    // Mengambil data dari subcollection 'tasks' milik user yang statusnya 'pending'
+                    const qTasks = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
+                    const taskSnap = await getDocs(qTasks);
+                    
+                    if (!taskSnap.empty) {
+                        const taskCount = taskSnap.size;
+                        taskAlertText.innerHTML = `Kamu memiliki <b>${taskCount} tugas</b> tertunda hari ini.`;
+                        taskAlert.style.display = 'flex';
+                    } else {
+                        taskAlert.style.display = 'none'; // Sembunyikan notif jika 0 tugas
+                    }
+
+                    // C. AMBIL RIWAYAT CHAT ASLI TERAKHIR DARI DATABASE
+                    // Mengambil 1 dokumen chat terakhir dari subcollection 'chats' milik user
+                    const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc"), limit(1));
+                    const chatSnap = await getDocs(qChat);
+                    
+                    if (!chatSnap.empty) {
+                        const lastChat = chatSnap.docs[0].data();
+                        const chatMsg = lastChat.message || lastChat.text || "Mengirim lampiran/gambar.";
+                        recentChatBubble.innerHTML = `<p class="chat-text">"${chatMsg}"</p>`;
+                    } else {
+                        recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada obrolan. Mulai sapa Asisten AI sekarang.</p>`;
+                    }
+
+                } catch (error) {
+                    console.error("Terjadi kendala saat menarik data: ", error);
+                    userGreeting.innerText = `Halo, Pengguna!`;
+                    taskAlert.style.display = 'none';
+                    recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada riwayat obrolan.</p>`;
+                }
+
             } else {
+                // UI Jika Belum Login
                 authContainer.innerHTML = `
                     <a href="login.html" class="btn btn-outline">Masuk</a>
                     <a href="login.html" class="btn btn-primary">Daftar</a>
                 `;
+                userGreeting.innerText = `Halo, Selamat Datang!`;
+                
+                // Pastikan disembunyikan / dikosongkan jika user tamu
+                taskAlert.style.display = 'none';
+                recentChatBubble.innerHTML = `<p class="chat-empty">Silakan masuk untuk melihat riwayat obrolan AI Anda.</p>`;
             }
         });
     </script>
