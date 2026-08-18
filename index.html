@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Genius - Asisten Produktivitas & Belajar</title>
+    
+    <!-- PWA Setup -->
+    <meta name="theme-color" content="#DCE8F5">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Professional Icons (Phosphor Icons - Bukan Emoji) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- OneSignal SDK untuk Notifikasi -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "MASUKKAN_APP_ID_ONESIGNAL_KAMU_DISINI", // Akan diganti saat setup backend OneSignal
+          safari_web_id: "web.onesignal.auto.YOUR_SAFARI_ID",
+          notifyButton: {
+            enable: true,
+            colors: {
+                'circle.background': '#8DA9C4',
+                'circle.foreground': 'white',
+            }
+          },
+        });
+      });
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #F8FAFC; /* Sangat soft abu-abu pastel */
+            --header-bg: #DCE8F5; /* Biru pastel cerah tapi tidak putih */
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --primary: #8DA9C4; /* Biru pastel agak tua untuk kontras */
+            --primary-hover: #7A98B5;
+            --accent-1: #FDE2E4; /* Soft pink */
+            --accent-2: #E2ECE9; /* Soft green */
+            --accent-3: #FFF1E6; /* Soft peach */
+            --accent-4: #EAE4E9; /* Soft purple */
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 10px rgba(0,0,0,0.03);
+            --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
+            --border-radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER MOBILE FIRST */
+        header {
+            background-color: var(--header-bg);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+        .logo-container img {
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1.5px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(141, 169, 196, 0.15);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 40px 20px 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .hero p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            max-width: 90%;
+        }
+
+        .hero-img {
+            width: 100%;
+            max-width: 320px;
+            height: 220px;
+            margin-bottom: 30px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, var(--accent-2), var(--header-bg));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-img i {
+            font-size: 90px;
+            color: var(--primary);
+            opacity: 0.9;
+        }
+
+        .cta-btn {
+            padding: 14px 28px;
+            font-size: 15px;
+            border-radius: 30px;
+            width: 80%;
+            justify-content: center;
+            max-width: 300px;
+        }
+
+        /* FEATURES MOBILE GRID */
+        .features {
+            padding: 0 20px 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .feature-card {
+            background-color: var(--white);
+            padding: 24px 16px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .feature-card:active {
+            transform: scale(0.96);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 28px;
+        }
+
+        /* Pewarnaan Spesifik Pastel & Ikon per Fitur */
+        .fc-1 .feature-icon { background-color: var(--accent-1); color: #D47A83; }
+        .fc-2 .feature-icon { background-color: var(--accent-2); color: #52796F; }
+        .fc-3 .feature-icon { background-color: var(--accent-3); color: #CB997E; }
+        .fc-4 .feature-icon { background-color: var(--accent-4); color: #9A8C98; }
+
+        .feature-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .feature-card p {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo-container">
+            <!-- Menambahkan ekstensi .png ke URL Imgur agar dapat dirender -->
+            <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Logo">
+        </div>
+        <div class="auth-buttons" id="auth-container">
+            <!-- Loading state sebelum firebase terinisialisasi -->
+            <div style="font-size:12px; color:var(--text-muted);">Memuat...</div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <main>
+        <section class="hero">
+            <div class="hero-img">
+                <i class="ph-duotone ph-rocket-launch"></i>
+            </div>
+            <h1>Kelola Tugas & Waktu Lebih Jenius</h1>
+            <p>Aplikasi web interaktif dengan Asisten AI untuk membantu mengorganisir jadwal dan PR sekolahmu dengan mudah.</p>
+            <a href="login.html" class="btn btn-primary cta-btn">
+                Mulai Sekarang <i class="ph-bold ph-arrow-right"></i>
+            </a>
+        </section>
+
+        <!-- FITUR UTAMA -->
+        <section class="features">
+            <div class="feature-card fc-1">
+                <div class="feature-icon"><i class="ph-duotone ph-robot"></i></div>
+                <h3>Asisten AI</h3>
+                <p>Chat pintar untuk ekstraksi dan penjadwalan otomatis.</p>
+            </div>
+            <div class="feature-card fc-2">
+                <div class="feature-icon"><i class="ph-duotone ph-calendar-check"></i></div>
+                <h3>Kalender</h3>
+                <p>Pantau deadline tugas dengan visualisasi interaktif.</p>
+            </div>
+            <div class="feature-card fc-3">
+                <div class="feature-icon"><i class="ph-duotone ph-books"></i></div>
+                <h3>Home Work</h3>
+                <p>Ruang pengerjaan tugas & solusi referensi dari AI.</p>
+            </div>
+            <div class="feature-card fc-4">
+                <div class="feature-icon"><i class="ph-duotone ph-archive-box"></i></div>
+                <h3>Finish System</h3>
+                <p>Arsip tugas selesai lengkap dengan bukti berkas.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        // Menggunakan CDN ESM untuk Firebase karena browser native module support
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        // Konfigurasi dari pengguna
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
+            authDomain: "mading-cf676.firebaseapp.com",
+            projectId: "mading-cf676",
+            storageBucket: "mading-cf676.firebasestorage.app",
+            messagingSenderId: "72175203671",
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12",
+            measurementId: "G-590P9LLK7J"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        // Referensi elemen UI
+        const authContainer = document.getElementById('auth-container');
+
+        // Observer Status Login User
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Jika USER SUDAH LOGIN
+                authContainer.innerHTML = `
+                    <a href="profil.html" class="btn btn-primary" style="padding: 8px 18px;">
+                        <i class="ph-bold ph-user"></i> Profil
+                    </a>
+                `;
+            } else {
+                // Jika USER BELUM LOGIN
+                authContainer.innerHTML = `
+                    <a href="login.html" class="btn btn-outline">Masuk</a>
+                    <a href="login.html" class="btn btn-primary">Jadi Anggota</a>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
