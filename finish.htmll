@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finish System - Arsip Tugas</title>
+    
+    <meta name="theme-color" content="#1E3A8A">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --bg-body: #E2E8F0; 
+            --bg-app: #F8FAFC;  
+            --blue-light: #3B82F6; 
+            --blue-dark: #1E3A8A;  
+            --blue-gradient: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
+            
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --white: #FFFFFF;
+            --success: #10B981;
+            
+            --shadow-sm: 0 4px 10px rgba(0,0,0,0.05);
+            --border-radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; }
+
+        .mobile-wrapper {
+            width: 100%; max-width: 480px; min-height: 100vh;
+            background-color: var(--bg-app); position: relative; overflow-x: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--white); padding: 16px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm); z-index: 100;
+            padding-top: max(16px, env(safe-area-inset-top)); 
+        }
+
+        .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
+        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; }
+
+        /* VIEW CONTAINERS */
+        .view-section {
+            flex: 1; padding: 20px; overflow-y: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .hidden-view { display: none !important; }
+
+        /* --- LIST VIEW (DAFTAR ARSIP) --- */
+        .archive-stats {
+            background: var(--blue-gradient); color: var(--white);
+            padding: 20px; border-radius: 16px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 20px rgba(30, 58, 138, 0.15);
+        }
+        
+        .archive-stats h3 { font-size: 14px; font-weight: 500; opacity: 0.9; }
+        .archive-stats h2 { font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        
+        .search-box {
+            background: var(--white); border-radius: 12px; display: flex; align-items: center;
+            padding: 10px 14px; margin-bottom: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0;
+        }
+        .search-box i { color: var(--text-muted); font-size: 18px; margin-right: 10px; }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 13px; font-family: 'Poppins', sans-serif; background: transparent; }
+
+        .archive-card {
+            background: var(--white); border-radius: 16px; padding: 16px;
+            margin-bottom: 12px; box-shadow: var(--shadow-sm);
+            border-left: 5px solid var(--success); /* Warna hijau menandakan selesai */
+            cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; gap: 15px;
+        }
+        
+        .archive-card:active { transform: scale(0.97); }
+        .archive-icon {
+            width: 42px; height: 42px; background: rgba(16, 185, 129, 0.1); color: var(--success);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 22px; flex-shrink: 0;
+        }
+        
+        .archive-info { flex: 1; }
+        .archive-info h4 { font-size: 14px; font-weight: 700; color: var(--blue-dark); margin-bottom: 2px; }
+        .archive-info p { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+        /* --- DETAIL VIEW (READ ONLY) --- */
+        #detail-view { background-color: var(--bg-app); padding: 0; }
+        
+        .detail-header-card {
+            background: var(--white); padding: 25px 20px;
+            border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+            box-shadow: var(--shadow-sm); margin-bottom: 20px; text-align: center;
+        }
+        
+        .badge-done {
+            background: rgba(16, 185, 129, 0.1); color: var(--success); font-size: 11px;
+            font-weight: 700; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px;
+        }
+
+        .detail-title { font-size: 18px; font-weight: 700; color: var(--blue-dark); margin-bottom: 5px; }
+        .detail-date { font-size: 12px; color: var(--text-muted); }
+
+        .content-wrap { padding: 0 20px 30px; }
+
+        /* Kotak Rekaman Info */
+        .record-box {
+            background-color: var(--white); padding: 16px; border-radius: 16px;
+            margin-bottom: 16px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0;
+        }
+        
+        .record-box h4 {
+            font-size: 12px; color: var(--blue-light); margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;
+        }
+
+        .record-box p { font-size: 13px; color: var(--text-main); line-height: 1.6; }
+        
+        .record-box .empty-text { color: var(--text-muted); font-style: italic; }
+
+        /* Preview Gambar Arsip */
+        .archive-img {
+            width: 100%; border-radius: 12px; border: 1px solid #E2E8F0;
+            margin-top: 10px; cursor: pointer; transition: 0.3s;
+        }
+        
+        /* Modal Gambar Penuh (Opsional) */
+        .img-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200; display: none;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .img-modal img { max-width: 100%; max-height: 90%; border-radius: 8px; }
+        .close-modal {
+            position: absolute; top: 20px; right: 20px; color: white;
+            font-size: 30px; cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-wrapper">
+        
+        <!-- HEADER -->
+        <header>
+            <div class="back-btn" id="btn-back" onclick="window.location.href='index.html'">
+                <i class="ph-bold ph-caret-left"></i>
+            </div>
+            <div class="header-title" id="header-title">
+                <i class="ph-fill ph-archive-box"></i> Finish System
+            </div>
+            <div style="width: 24px;"></div>
+        </header>
+
+        <!-- VIEW 1: DAFTAR ARSIP TUGAS SELESAI -->
+        <div id="list-view" class="view-section">
+            
+            <div class="archive-stats">
+                <div>
+                    <h3>Total Diselesaikan</h3>
+                    <h2><i class="ph-bold ph-check-circle"></i> <span id="total-done">0</span> Tugas</h2>
+                </div>
+                <i class="ph-duotone ph-trophy" style="font-size: 48px; opacity: 0.8;"></i>
+            </div>
+
+            <div class="search-box">
+                <i class="ph-bold ph-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Cari riwayat tugas..." oninput="filterArchive()">
+            </div>
+
+            <div id="archive-list-container">
+                <!-- Riwayat Kartu Tugas -->
+            </div>
+        </div>
+
+        <!-- VIEW 2: DETAIL ARSIP (READ ONLY) -->
+        <div id="detail-view" class="view-section hidden-view">
+            
+            <div class="detail-header-card">
+                <div class="badge-done"><i class="ph-bold ph-check"></i> SELESAI DIKUMPULKAN</div>
+                <h2 class="detail-title" id="det-title">Judul Tugas</h2>
+                <p class="detail-date" id="det-date">Diselesaikan pada: 18 Agustus 2026, 14:30 WIB</p>
+            </div>
+
+            <div class="content-wrap">
+                <!-- Instruksi Awal -->
+                <div class="record-box">
+                    <h4><i class="ph-fill ph-file-text"></i> Instruksi Tugas Awal</h4>
+                    <p id="det-instruction">Deskripsi instruksi...</p>
+                </div>
+
+                <!-- Jawaban Teks -->
+                <div class="record-box">
+                    <h4><i class="ph-fill ph-pencil-line"></i> Jawaban Saya</h4>
+                    <p id="det-answer">Jawaban teks akan muncul di sini.</p>
+                </div>
+
+                <!-- Bukti Gambar -->
+                <div class="record-box">
+                    <h4><i class="ph-fill ph-image"></i> Bukti Lampiran / Gambar</h4>
+                    <div id="det-image-container">
+                        <!-- Gambar Base64 akan dirender di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL PREVIEW GAMBAR FULLSCREEN -->
+        <div class="img-modal" id="image-modal">
+            <i class="ph-bold ph-x close-modal" onclick="closeImageModal()"></i>
+            <img src="" id="full-image">
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATA DUMMY FINISH SYSTEM
+        // Di aplikasi asli, data ini diambil dari Firestore tempat kamu menyimpan tugas yang sudah di-Finish
+        // ==========================================
+        const finishedTasks = [
+            {
+                id: "F1",
+                title: "Laporan Basis Data Firebase",
+                completedAt: "18 Agustus 2026, 14:30 WIB",
+                instruction: "Kerjakan laporan perancangan basis data NoSQL menggunakan Firebase. Jika sudah selesai, upload PDF ke Google Drive dan kumpulkan screenshot bukti link Drive di sini.",
+                answerText: "Tugas sudah saya selesaikan. Berikut adalah link Google Drive laporan saya: https://drive.google.com/open?id=1xyz...",
+                base64Image: "https://via.placeholder.com/600x400/3B82F6/FFFFFF?text=Bukti+Screenshot+Drive" // Simulasi gambar Base64 / URL
+            },
+            {
+                id: "F2",
+                title: "Rangkuman Metodologi Pragmatik",
+                completedAt: "16 Agustus 2026, 09:15 WIB",
+                instruction: "Buatlah analisis mengenai metodologi pengembangan sistem informasi secara pragmatik.",
+                answerText: "Metodologi pragmatik mengutamakan kecepatan dan hasil nyata (MVP) dibanding dokumentasi panjang. Kelebihannya adalah time-to-market sangat cepat untuk startup.",
+                base64Image: null // Simulasi jika user hanya kirim teks tanpa gambar
+            }
+        ];
+
+        const listView = document.getElementById('list-view');
+        const detailView = document.getElementById('detail-view');
+        const btnBack = document.getElementById('btn-back');
+        const headerTitle = document.getElementById('header-title');
+        
+        // Element Detail View
+        const detTitle = document.getElementById('det-title');
+        const detDate = document.getElementById('det-date');
+        const detInstruction = document.getElementById('det-instruction');
+        const detAnswer = document.getElementById('det-answer');
+        const detImageContainer = document.getElementById('det-image-container');
+
+        // Update Total Stats
+        document.getElementById('total-done').innerText = finishedTasks.length;
+
+        // ==========================================
+        // 2. RENDER DAFTAR ARSIP
+        // ==========================================
+        function renderArchiveList(tasksToRender = finishedTasks) {
+            const container = document.getElementById('archive-list-container');
+            container.innerHTML = '';
+
+            if (tasksToRender.length === 0) {
+                container.innerHTML = `<p style="text-align:center; margin-top:30px; font-size:13px; color:var(--text-muted);">Tidak ada riwayat tugas ditemukan.</p>`;
+                return;
+            }
+
+            tasksToRender.forEach(task => {
+                const card = document.createElement('div');
+                card.classList.add('archive-card');
+                card.onclick = () => openArchiveDetail(task.id);
+                
+                card.innerHTML = `
+                    <div class="archive-icon">
+                        <i class="ph-bold ph-check"></i>
+                    </div>
+                    <div class="archive-info">
+                        <h4>${task.title}</h4>
+                        <p><i class="ph-bold ph-calendar-blank"></i> ${task.completedAt}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // 3. LOGIKA MEMBUKA DETAIL ARSIP (READ-ONLY)
+        // ==========================================
+        function openArchiveDetail(taskId) {
+            const task = finishedTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // Isi Data ke UI Detail
+            detTitle.innerText = task.title;
+            detDate.innerText = `Diselesaikan pada: ${task.completedAt}`;
+            detInstruction.innerText = task.instruction;
+            
+            // Cek Jawaban Teks
+            if (task.answerText && task.answerText.trim() !== "") {
+                detAnswer.innerText = task.answerText;
+                detAnswer.classList.remove('empty-text');
+            } else {
+                detAnswer.innerText = "Tidak ada jawaban teks terlampir.";
+                detAnswer.classList.add('empty-text');
+            }
+
+            // Cek Jawaban Gambar/File Base64
+            detImageContainer.innerHTML = '';
+            if (task.base64Image) {
+                const img = document.createElement('img');
+                img.src = task.base64Image;
+                img.classList.add('archive-img');
+                img.onclick = () => openImageModal(task.base64Image); // Fitur zoom gambar
+                detImageContainer.appendChild(img);
+            } else {
+                detImageContainer.innerHTML = '<p class="empty-text">Tidak ada bukti gambar/berkas terlampir.</p>';
+            }
+
+            // Transisi Layar
+            headerTitle.innerHTML = "Detail Riwayat";
+            btnBack.onclick = closeArchiveDetail; 
+            
+            listView.classList.add('hidden-view');
+            detailView.classList.remove('hidden-view');
+        }
+
+        function closeArchiveDetail() {
+            headerTitle.innerHTML = '<i class="ph-fill ph-archive-box"></i> Finish System';
+            btnBack.onclick = () => window.location.href = 'index.html'; 
+            
+            detailView.classList.add('hidden-view');
+            listView.classList.remove('hidden-view');
+        }
+
+        // ==========================================
+        // 4. FITUR PENCARIAN TUGAS
+        // ==========================================
+        function filterArchive() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = finishedTasks.filter(task => 
+                task.title.toLowerCase().includes(query)
+            );
+            renderArchiveList(filtered);
+        }
+
+        // ==========================================
+        // 5. MODAL ZOOM GAMBAR
+        // ==========================================
+        const imageModal = document.getElementById('image-modal');
+        const fullImage = document.getElementById('full-image');
+
+        function openImageModal(src) {
+            fullImage.src = src;
+            imageModal.style.display = 'flex';
+        }
+
+        function closeImageModal() {
+            imageModal.style.display = 'none';
+            fullImage.src = '';
+        }
+
+        // Init
+        renderArchiveList();
+
+    </script>
+</body>
+</html>
