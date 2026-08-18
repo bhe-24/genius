@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kalender - Genius</title>
+    
+    <meta name="theme-color" content="#DCE8F5">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --bg-color: #F8FAFC; 
+            --header-bg: #DCE8F5; 
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --primary: #8DA9C4; 
+            --primary-hover: #7A98B5;
+            --accent-1: #FDE2E4; /* Soft pink */
+            --accent-2: #E2ECE9; /* Soft green */
+            --accent-3: #FFF1E6; /* Soft peach */
+            --white: #FFFFFF;
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full screen di mobile */
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--header-bg);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+            padding-top: max(16px, env(safe-area-inset-top)); 
+        }
+
+        .back-btn {
+            color: var(--text-main);
+            font-size: 24px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* CALENDAR SECTION */
+        .calendar-section {
+            background-color: var(--white);
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+            z-index: 5;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .calendar-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .day-cell {
+            aspect-ratio: 1; /* Membuat sel berbentuk kotak sempurna */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .day-cell:active { transform: scale(0.9); }
+
+        .day-cell.empty {
+            cursor: default;
+        }
+
+        .day-cell.today {
+            background-color: var(--accent-3);
+            color: #CB997E;
+            font-weight: 700;
+        }
+
+        .day-cell.selected {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(141, 169, 196, 0.4);
+        }
+
+        /* DOT INDICATOR */
+        .task-dots {
+            display: flex;
+            gap: 2px;
+            position: absolute;
+            bottom: 4px;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            background-color: #D47A83; /* Soft pink dot */
+            border-radius: 50%;
+        }
+        
+        .day-cell.selected .dot {
+            background-color: var(--white); /* Dot jadi putih jika tanggal dipilih */
+        }
+
+        /* TASKS LIST SECTION */
+        .task-section {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        .task-section-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* TASK CARD */
+        .task-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .task-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        /* Variasi warna kartu otomatis berdasarkan kategori */
+        .type-homework .task-icon { background-color: var(--accent-1); color: #D47A83; }
+        .type-meeting .task-icon { background-color: var(--accent-2); color: #52796F; }
+        .type-reminder .task-icon { background-color: var(--accent-3); color: #CB997E; }
+
+        .task-info { flex: 1; }
+
+        .task-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .task-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-action {
+            color: var(--primary);
+            font-size: 20px;
+            padding: 8px;
+            background: rgba(141, 169, 196, 0.1);
+            border-radius: 50%;
+            display: flex;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #E2E8F0;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p { font-size: 13px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <a href="index.html" class="back-btn">
+            <i class="ph-bold ph-caret-left"></i>
+        </a>
+        <h1>Jadwal & Tugas</h1>
+    </header>
+
+    <!-- CALENDAR -->
+    <div class="calendar-section">
+        <div class="calendar-header">
+            <button id="prev-month"><i class="ph-bold ph-caret-left"></i></button>
+            <h2 id="month-year-display">Agustus 2026</h2>
+            <button id="next-month"><i class="ph-bold ph-caret-right"></i></button>
+        </div>
+        
+        <div class="weekdays">
+            <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+        </div>
+        
+        <div class="days-grid" id="calendar-days">
+            <!-- Sel-sel tanggal akan digenerate via JavaScript -->
+        </div>
+    </div>
+
+    <!-- TASK LIST DETAIL -->
+    <div class="task-section">
+        <div class="task-section-header">
+            <span id="selected-date-text">Tugas Hari Ini</span>
+        </div>
+        
+        <div class="task-list" id="task-list-container">
+            <!-- Kartu tugas akan digenerate via JavaScript berdasarkan tanggal yang diklik -->
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DUMMY DATA TUGAS (Nantinya diambil dari Firebase/AI)
+        // Format Key: "YYYY-MM-DD"
+        // ==========================================
+        const dummyTasks = {
+            "2026-08-18": [
+                { id: "T1", title: "Metodologi Sistem Pragmatik", time: "10:00 - Selesai", type: "type-homework", icon: "ph-books" },
+                { id: "T2", title: "Review UI/UX Figma", time: "14:00 WIB", type: "type-meeting", icon: "ph-users-three" }
+            ],
+            "2026-08-20": [
+                { id: "T3", title: "Kumpulkan Laporan Basis Data", time: "23:59 Deadline", type: "type-homework", icon: "ph-file-code" }
+            ],
+            "2026-08-25": [
+                { id: "T4", title: "Persiapan Presentasi Web", time: "09:00 WIB", type: "type-reminder", icon: "ph-bell-ringing" }
+            ]
+        };
+
+        // ==========================================
+        // LOGIKA KALENDER
+        // ==========================================
+        let currentDate = new Date(); // Bulan dan tahun yang sedang dilihat
+        let selectedDate = new Date(); // Tanggal yang diklik user
+
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        
+        const monthYearDisplay = document.getElementById('month-year-display');
+        const calendarDays = document.getElementById('calendar-days');
+        const taskListContainer = document.getElementById('task-list-container');
+        const selectedDateText = document.getElementById('selected-date-text');
+
+        function renderCalendar() {
+            calendarDays.innerHTML = "";
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
+
+            // Mendapatkan hari pertama di bulan ini (0 = Minggu, 1 = Senin, dst)
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            // Mendapatkan total hari di bulan ini
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            // Tanggal Hari Ini yang sebenarnya
+            const today = new Date();
+
+            // 1. Render sel kosong untuk hari sebelum tanggal 1
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.classList.add('day-cell', 'empty');
+                calendarDays.appendChild(emptyCell);
+            }
+
+            // 2. Render sel tanggal 1 sampai akhir bulan
+            for (let i = 1; i <= lastDay; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.classList.add('day-cell');
+                dayCell.innerText = i;
+
+                // Format string YYYY-MM-DD untuk pencocokan data
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                // Cek apakah ini hari ini
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayCell.classList.add('today');
+                }
+
+                // Cek apakah ini tanggal yang sedang di-klik/dipilih
+                if (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
+                    dayCell.classList.add('selected');
+                }
+
+                // CEK APAKAH ADA TUGAS DI TANGGAL INI -> Jika ada, tambahkan titik (dots)
+                if (dummyTasks[dateString]) {
+                    const dotsContainer = document.createElement('div');
+                    dotsContainer.classList.add('task-dots');
+                    
+                    // Maksimal tampilkan 3 titik agar rapi
+                    const maxDots = Math.min(dummyTasks[dateString].length, 3);
+                    for (let d = 0; d < maxDots; d++) {
+                        const dot = document.createElement('div');
+                        dot.classList.add('dot');
+                        dotsContainer.appendChild(dot);
+                    }
+                    dayCell.appendChild(dotsContainer);
+                }
+
+                // EVENT LISTENER: Saat tanggal diklik
+                dayCell.addEventListener('click', () => {
+                    selectedDate = new Date(year, month, i);
+                    renderCalendar(); // Re-render untuk memindahkan warna 'selected'
+                    showTasksForDate(dateString, i, monthNames[month], year);
+                });
+
+                calendarDays.appendChild(dayCell);
+            }
+        }
+
+        // ==========================================
+        // LOGIKA MENAMPILKAN TUGAS DI BAGIAN BAWAH
+        // ==========================================
+        function showTasksForDate(dateString, day, monthName, year) {
+            selectedDateText.innerText = `Tugas pada ${day} ${monthName} ${year}`;
+            taskListContainer.innerHTML = ""; // Bersihkan list sebelumnya
+
+            const tasks = dummyTasks[dateString];
+
+            if (tasks && tasks.length > 0) {
+                tasks.forEach(task => {
+                    const card = document.createElement('div');
+                    card.classList.add('task-card', task.type);
+                    
+                    card.innerHTML = `
+                        <div class="task-icon">
+                            <i class="ph-duotone ${task.icon}"></i>
+                        </div>
+                        <div class="task-info">
+                            <h3>${task.title}</h3>
+                            <p><i class="ph-bold ph-clock"></i> ${task.time}</p>
+                        </div>
+                        <div class="task-action">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </div>
+                    `;
+
+                    // Jika diklik, arahkan ke Halaman Home Work (Nanti)
+                    card.addEventListener('click', () => {
+                        // Simulasi passing ID tugas ke home-work.html
+                        window.location.href = `home-work.html?id=${task.id}`;
+                    });
+
+                    taskListContainer.appendChild(card);
+                });
+            } else {
+                // UI jika kosong / tidak ada tugas
+                taskListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph-duotone ph-coffee"></i>
+                        <p>Tidak ada jadwal atau tugas di hari ini.<br>Waktunya bersantai!</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Navigasi Ganti Bulan
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        // ==========================================
+        // INIT: Jalankan saat halaman pertama dibuka
+        // ==========================================
+        renderCalendar();
+        
+        // Memuat tugas hari ini secara default
+        const initYear = selectedDate.getFullYear();
+        const initMonth = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const initDay = String(selectedDate.getDate()).padStart(2, '0');
+        const initDateString = `${initYear}-${initMonth}-${initDay}`;
+        
+        showTasksForDate(initDateString, selectedDate.getDate(), monthNames[selectedDate.getMonth()], initYear);
+
+    </script>
+</body>
+</html>
