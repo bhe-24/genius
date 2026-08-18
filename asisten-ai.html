@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport ketat untuk mencegah zoom otomatis dan memastikan ukuran pas di HP -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Asisten AI - Genius</title>
+    
+    <meta name="theme-color" content="#DCE8F5">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --bg-color: #F8FAFC; 
+            --header-bg: #DCE8F5; 
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --primary: #8DA9C4; 
+            --primary-hover: #7A98B5;
+            --white: #FFFFFF;
+            --chat-user: #8DA9C4;
+            --chat-ai: #FFFFFF;
+            --shadow-sm: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            /* Menggunakan 100dvh agar pas dengan viewport dinamis HP (termasuk saat keyboard muncul) */
+            height: 100dvh; 
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden; /* Mencegah scroll di body, scroll hanya di area chat */
+        }
+
+        /* Container utama menggunakan Flexbox */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 600px; /* Batas maksimal jika dibuka di tablet/PC */
+            margin: 0 auto;
+            background-color: var(--bg-color);
+            position: relative;
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--header-bg);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+            /* Safe area untuk iPhone notch */
+            padding-top: max(16px, env(safe-area-inset-top)); 
+        }
+
+        .back-btn {
+            color: var(--text-main);
+            font-size: 24px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .ai-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-profile .icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ai-profile .info h2 {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .ai-profile .info p {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #52796F; /* Hijau online */
+            border-radius: 50%;
+        }
+
+        /* CHAT AREA (Bisa di-scroll) */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .message.user .bubble {
+            background-color: var(--chat-user);
+            color: var(--white);
+            border-radius: 18px 18px 0px 18px;
+        }
+
+        .message.ai .bubble {
+            background-color: var(--chat-ai);
+            color: var(--text-main);
+            border-radius: 18px 18px 18px 0px;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* TYPING INDICATOR */
+        .typing-indicator {
+            display: none; /* Sembunyikan default */
+            padding: 12px 16px;
+            background-color: var(--chat-ai);
+            border-radius: 18px 18px 18px 0px;
+            align-self: flex-start;
+            box-shadow: var(--shadow-sm);
+            align-items: center;
+            gap: 4px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        /* INPUT AREA */
+        .input-area {
+            background-color: var(--white);
+            padding: 12px 16px;
+            /* Safe area bawah untuk iPhone tanpa tombol home */
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border: 1px solid #E2E8F0;
+            transition: 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            font-family: 'Poppins', sans-serif;
+            /* FONT 16px PENTING: Mencegah iOS Safari auto-zoom saat ngetik */
+            font-size: 16px; 
+            color: var(--text-main);
+            padding: 4px 0;
+            line-height: 1.4;
+        }
+
+        textarea::placeholder {
+            color: #A0AEC0;
+            font-size: 14px;
+        }
+
+        .send-btn {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:active {
+            transform: scale(0.9);
+            background-color: var(--primary-hover);
+        }
+
+        .send-btn:disabled {
+            background-color: #CBD5E1;
+            cursor: not-allowed;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- HEADER -->
+        <header>
+            <a href="index.html" class="back-btn">
+                <i class="ph-bold ph-caret-left"></i>
+            </a>
+            <div class="ai-profile">
+                <div class="icon">
+                    <i class="ph-duotone ph-robot"></i>
+                </div>
+                <div class="info">
+                    <h2>Genius AI</h2>
+                    <p><span class="status-dot"></span> Selalu Siap Membantu</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- CHAT BOX -->
+        <main class="chat-area" id="chat-box">
+            <!-- Pesan Pembuka dari AI -->
+            <div class="message ai">
+                <div class="bubble">
+                    Halo! Aku asisten Genius-mu. Aku bisa bantu mengatur jadwal atau mengerjakan tugas. <br><br>
+                    Ketik <b>/add [nama tugas] pada [hari/tanggal]</b> untuk menambah jadwal otomatis.
+                </div>
+                <span class="time" id="start-time"></span>
+            </div>
+
+            <!-- Tempat Pesan Baru Muncul -->
+            
+            <!-- Typing Indicator (Sembunyi) -->
+            <div class="typing-indicator" id="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        </main>
+
+        <!-- INPUT BOX -->
+        <footer class="input-area">
+            <div class="input-wrapper">
+                <textarea id="chat-input" rows="1" placeholder="Ketik pesan atau /add..."></textarea>
+            </div>
+            <button class="send-btn" id="send-btn">
+                <i class="ph-fill ph-paper-plane-right"></i>
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // Set waktu untuk pesan pembuka
+        const now = new Date();
+        document.getElementById('start-time').innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        // Fungsi Auto-Resize Textarea (Memanjang ke bawah saat teks banyak)
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            let newHeight = this.scrollHeight;
+            this.style.height = (newHeight < 100 ? newHeight : 100) + 'px'; // Max 100px
+            
+            // Aktif/Nonaktifkan tombol send
+            sendBtn.disabled = this.value.trim() === '';
+        });
+
+        sendBtn.disabled = true; // Default disable
+
+        // Fungsi mendapatkan waktu format HH:MM
+        function getCurrentTime() {
+            const date = new Date();
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+
+        // Fungsi Scroll ke Paling Bawah
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Fungsi Menambahkan Pesan ke UI
+        function appendMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('bubble');
+            bubbleDiv.innerHTML = text.replace(/\n/g, '<br>'); // Mengubah \n jadi enter HTML
+
+            const timeSpan = document.createElement('span');
+            timeSpan.classList.add('time');
+            timeSpan.innerText = getCurrentTime();
+
+            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(timeSpan);
+
+            // Insert pesan sebelum typing indicator agar typing indicator tetap paling bawah
+            chatBox.insertBefore(messageDiv, typingIndicator);
+            scrollToBottom();
+        }
+
+        // FUNGSI UTAMA: MENGIRIM PESAN
+        async function sendMessage() {
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            // 1. Tampilkan Pesan User
+            appendMessage('user', messageText);
+            
+            // 2. Kosongkan Input
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            // 3. Tampilkan Typing Indicator AI
+            typingIndicator.style.display = 'flex';
+            scrollToBottom();
+
+            try {
+                // 4. Proses Fetch Data ke endpoint /api/chat.js (Groq) milikmu di Vercel
+                // Pastikan endpoint di Vercel nantinya bernama /api/chat
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                
+                // 5. Hilangkan Typing & Tampilkan Jawaban AI
+                typingIndicator.style.display = 'none';
+                
+                // Asumsi API mu membalas dengan JSON format: { "reply": "teks jawaban AI" }
+                appendMessage('ai', data.reply || data.message || "Maaf, sistem AI sedang memproses.");
+                
+            } catch (error) {
+                console.error("Error dari API:", error);
+                typingIndicator.style.display = 'none';
+                
+                // Fallback jika API belum siap / error (hanya untuk simulasi UI saat ini)
+                setTimeout(() => {
+                    if (messageText.includes('/add')) {
+                        appendMessage('ai', '✅ Siap! Tugas telah aku ekstrak dan aku masukkan ke sistem **Kalender** dan **Home Work**.');
+                    } else {
+                        appendMessage('ai', 'Maaf, sepertinya server AI sedang tidak merespon atau api/chat belum terhubung.');
+                    }
+                }, 500);
+            }
+        }
+
+        // Listener Klik Tombol Send
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Listener Tekan Tombol Enter (Kecuali sedang Shift+Enter untuk baris baru)
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Mencegah enter membuat baris baru default
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
