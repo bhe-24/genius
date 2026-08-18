@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profil - Genius</title>
+    
+    <meta name="theme-color" content="#1E3A8A">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        :root {
+            --bg-body: #E2E8F0; 
+            --bg-app: #F8FAFC;  
+            --blue-light: #3B82F6; 
+            --blue-dark: #1E3A8A;  
+            --blue-gradient: linear-gradient(135deg, var(--blue-light), var(--blue-dark));
+            
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --white: #FFFFFF;
+            --success: #10B981;
+            
+            --shadow-sm: 0 4px 10px rgba(0,0,0,0.05);
+            --border-radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+
+        .mobile-wrapper {
+            width: 100%; max-width: 480px; min-height: 100vh;
+            background-color: var(--bg-app); position: relative; overflow-x: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--white); padding: 16px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm); z-index: 100;
+            padding-top: max(16px, env(safe-area-inset-top)); 
+            position: sticky; top: 0;
+        }
+
+        .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
+        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; }
+
+        /* CONTENT AREA */
+        .content { padding: 20px; flex: 1; overflow-y: auto; }
+
+        /* PROFILE CARD (HERO) */
+        .profile-card {
+            background: var(--blue-gradient); border-radius: 24px;
+            padding: 30px 20px 20px; text-align: center; color: var(--white);
+            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2); margin-bottom: 20px;
+            position: relative; overflow: hidden;
+        }
+
+        .profile-card::after {
+            content: '\2728'; font-size: 100px; position: absolute; right: -20px; top: -20px;
+            opacity: 0.05; transform: rotate(15deg); pointer-events: none;
+        }
+
+        .pic-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; z-index: 2; }
+        
+        .pic-wrapper::before {
+            content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
+            border-radius: 50%; border: 2px solid transparent; border-top-color: #60A5FA;
+            border-right-color: rgba(96, 165, 250, 0.3); animation: ringRotate 4s linear infinite;
+        }
+
+        @keyframes ringRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .profile-pic {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.2); background: var(--white);
+            position: relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-cam {
+            position: absolute; bottom: 0; right: 0; width: 34px; height: 34px;
+            border-radius: 50%; border: none; background: var(--blue-light); color: var(--white);
+            cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.3); display: flex;
+            justify-content: center; align-items: center; font-size: 18px; z-index: 3; transition: 0.2s;
+        }
+        .btn-cam:active { transform: scale(0.9); }
+        .btn-cam.loading { animation: spin 1s infinite linear; background: #94A3B8; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .user-name { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; z-index: 2; position: relative; }
+        .user-email { font-size: 12px; opacity: 0.8; margin-bottom: 15px; z-index: 2; position: relative; }
+
+        .badges { display: flex; justify-content: center; gap: 10px; z-index: 2; position: relative; }
+        .badge {
+            background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;
+            border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+        }
+
+        /* STATS CARD */
+        .stats-card {
+            background: var(--white); border-radius: 20px; display: grid; grid-template-columns: repeat(3, 1fr);
+            box-shadow: var(--shadow-sm); margin-bottom: 20px; border: 1px solid #E2E8F0; overflow: hidden;
+        }
+        .stat-item { padding: 15px 10px; text-align: center; border-right: 1px solid #E2E8F0; }
+        .stat-item:last-child { border-right: none; }
+        .stat-num { font-size: 18px; font-weight: 700; color: var(--blue-dark); display: block; }
+        .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* CHART CARD */
+        .chart-card { background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; margin-bottom: 20px; }
+        .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .card-title i { color: var(--blue-light); font-size: 18px; }
+        
+        .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .chart-score { font-size: 28px; font-weight: 700; color: var(--blue-dark); line-height: 1; }
+        .chart-score span { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
+        
+        .chart-trend { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+        .trend-up { background: #D1FAE5; color: #059669; }
+        .trend-down { background: #FEE2E2; color: #DC2626; }
+        .trend-same { background: #F1F5F9; color: #64748B; }
+
+        .chart-container { position: relative; height: 160px; width: 100%; }
+
+        /* FORM CARD */
+        .form-card { background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--blue-dark); margin-bottom: 6px; }
+        .form-group label i { color: var(--blue-light); font-size: 16px; }
+        
+        .form-input {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #E2E8F0; border-radius: 12px;
+            font-size: 13px; background: var(--bg-app); color: var(--text-main); transition: 0.3s;
+        }
+        .form-input:focus { background: var(--white); border-color: var(--blue-light); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+
+        .btn-save {
+            background: var(--blue-gradient); color: var(--white); width: 100%; border: none;
+            padding: 14px; border-radius: 30px; font-weight: 600; font-size: 14px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(30,58,138,0.2); margin-top: 10px; transition: 0.2s;
+        }
+        .btn-save:active { transform: scale(0.97); }
+        .btn-logout {
+            background: #FEE2E2; color: #DC2626; width: 100%; border: none;
+            padding: 14px; border-radius: 30px; font-weight: 600; font-size: 14px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 15px; transition: 0.2s;
+        }
+        .btn-logout:active { transform: scale(0.97); }
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-wrapper">
+        
+        <!-- HEADER -->
+        <header>
+            <a href="index.html" class="back-btn">
+                <i class="ph-bold ph-caret-left"></i>
+            </a>
+            <div class="header-title">
+                <i class="ph-fill ph-user-circle"></i> Profil Saya
+            </div>
+            <div style="width: 24px;"></div>
+        </header>
+
+        <div class="content">
+            
+            <!-- PROFILE HERO CARD -->
+            <div class="profile-card">
+                <div class="pic-wrapper">
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="uploadFotoBase64()">
+                    <img src="https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff" id="display-pic" class="profile-pic">
+                    <button class="btn-cam" id="btn-cam" onclick="document.getElementById('fileInput').click()">
+                        <i class="ph-fill ph-camera"></i>
+                    </button>
+                </div>
+                <div class="user-name" id="display-name">Memuat...</div>
+                <div class="user-email" id="display-email">...</div>
+                <div class="badges">
+                    <div class="badge">
+                        <i class="ph-fill ph-check-circle"></i> <span id="display-tasks">0 Tugas</span>
+                    </div>
+                    <div class="badge">
+                        <i class="ph-fill ph-lightning"></i> <span id="display-score">Skor: 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="stats-card">
+                <div class="stat-item">
+                    <span class="stat-num" id="stat-tasks">0</span>
+                    <span class="stat-label">Selesai</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" id="stat-score-val">0.00</span>
+                    <span class="stat-label">Skor Genius</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" id="stat-days">0</span>
+                    <span class="stat-label">Hari Aktif</span>
+                </div>
+            </div>
+
+            <!-- CHART CARD -->
+            <div class="chart-card">
+                <div class="card-title">
+                    <i class="ph-fill ph-chart-line-up"></i> Riwayat Produktivitas
+                </div>
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-score" id="chart-current-score">
+                            0.00 <span>Skor Terkini</span>
+                        </div>
+                        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" id="chart-last-date">
+                            Belum ada aktivitas
+                        </div>
+                    </div>
+                    <div class="chart-trend trend-same" id="chart-trend-badge">
+                        <i class="ph-bold ph-minus"></i> Stabil
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+
+            <!-- FORM CARD -->
+            <div class="form-card">
+                <div class="card-title">
+                    <i class="ph-fill ph-pencil-simple"></i> Edit Informasi Pribadi
+                </div>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label><i class="ph-fill ph-identification-card"></i> Nama Lengkap</label>
+                        <input type="text" id="inp-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="ph-fill ph-whatsapp-logo"></i> WhatsApp / HP</label>
+                        <input type="tel" id="inp-hp" class="form-input" placeholder="08...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="ph-fill ph-cake"></i> Tanggal Lahir</label>
+                        <input type="date" id="inp-dob" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="ph-fill ph-map-pin"></i> Kota Domisili</label>
+                        <input type="text" id="inp-addr" class="form-input" placeholder="Contoh: Jakarta">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="ph-fill ph-quotes"></i> Bio Singkat</label>
+                        <textarea id="inp-bio" class="form-input" placeholder="Tulis sesuatu tentang prestasimu..." rows="3" style="resize:vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-save" id="btn-save">
+                        <i class="ph-bold ph-floppy-disk"></i> Simpan Profil
+                    </button>
+                </form>
+                
+                <button type="button" class="btn-logout" id="btn-logout">
+                    <i class="ph-bold ph-sign-out"></i> Keluar (Logout)
+                </button>
+            </div>
+
+        </div> <!-- End Content -->
+    </div> <!-- End Mobile Wrapper -->
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, limit, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase (Sesuai dengan index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
+            authDomain: "mading-cf676.firebaseapp.com",
+            projectId: "mading-cf676",
+            storageBucket: "mading-cf676.firebasestorage.app",
+            messagingSenderId: "72175203671",
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let scoreChart = null;
+        let unsubHistory = null;
+        let unsubUserDoc = null;
+
+        // ==========================================
+        // 1. CEK AUTENTIKASI
+        // ==========================================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userRef = doc(db, 'users', user.uid);
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                    currentUser = { uid: user.uid, ...snap.data() };
+                    renderProfile(currentUser);
+                    listenScoreHistory(currentUser.uid);
+                    listenUserDoc(currentUser.uid);
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // ==========================================
+        // 2. LOGOUT FUNCTION
+        // ==========================================
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Keluar Akun?',
+                text: "Anda harus login kembali untuk mengakses aplikasi.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Ya, Keluar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    signOut(auth).then(() => {
+                        window.location.href = 'index.html';
+                    });
+                }
+            });
+        });
+
+        // ==========================================
+        // 3. RENDER DATA KE UI
+        // ==========================================
+        function renderProfile(user) {
+            const name = user.name || 'Pengguna Genius';
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('display-email').innerText = user.email || '';
+
+            updateScoreDisplay(user);
+
+            // Hitung Hari Aktif
+            let hariAktif = 1;
+            const createdField = user.createdAt;
+            if (createdField) {
+                const createdDate = new Date(createdField);
+                const diffTime = Math.abs(new Date() - createdDate);
+                hariAktif = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))); 
+            }
+            document.getElementById('stat-days').innerText = hariAktif;
+
+            // Foto Profil
+            if (user.photoURL) {
+                document.getElementById('display-pic').src = user.photoURL;
+            } else {
+                document.getElementById('display-pic').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3B82F6&color=fff&size=200`;
+            }
+
+            // Isi Form Edit
+            document.getElementById('inp-name').value = user.name || '';
+            document.getElementById('inp-hp').value = user.noHp || '';
+            document.getElementById('inp-dob').value = user.tanggalLahir || '';
+            document.getElementById('inp-addr').value = user.alamat || '';
+            document.getElementById('inp-bio').value = user.bioSingkat || '';
+        }
+
+        function updateScoreDisplay(user) {
+            const score = parseFloat(user.score || 0);
+            const tasksDone = user.tasksDone || 0;
+
+            document.getElementById('display-tasks').innerText = `${tasksDone} Tugas`;
+            document.getElementById('display-score').innerText = `Skor: ${score.toFixed(2)}`;
+            document.getElementById('stat-tasks').innerText = tasksDone;
+            document.getElementById('stat-score-val').innerText = score.toFixed(2);
+            document.getElementById('chart-current-score').innerHTML = `${score.toFixed(2)} <span>Skor Terkini</span>`;
+        }
+
+        // ==========================================
+        // 4. LISTENER REALTIME FIREBASE
+        // ==========================================
+        function listenUserDoc(uid) {
+            if (unsubUserDoc) unsubUserDoc();
+            unsubUserDoc = onSnapshot(doc(db, 'users', uid), (snap) => {
+                if (!snap.exists()) return;
+                currentUser = { uid, ...snap.data() };
+                updateScoreDisplay(currentUser);
+            });
+        }
+
+        function listenScoreHistory(uid) {
+            if (unsubHistory) unsubHistory(); 
+            const q = query(collection(db, 'users', uid, 'scoreHistory'), orderBy('dateKey', 'asc'), limit(14)); // Ambil 14 hari terakhir
+
+            unsubHistory = onSnapshot(q, (snap) => {
+                let historyData = [];
+                snap.forEach(d => historyData.push(d.data()));
+
+                // Jika data kosong, buat data default datar agar chart tidak blank
+                if (historyData.length === 0 && currentUser) {
+                    const scoreNow = parseFloat(currentUser.score || 0);
+                    const today = new Date();
+                    for (let i = 4; i >= 0; i--) {
+                        const d = new Date(today);
+                        d.setDate(d.getDate() - i);
+                        historyData.push({ 
+                            date: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }), 
+                            score: scoreNow 
+                        });
+                    }
+                }
+                renderChart(historyData);
+            });
+        }
+
+        // ==========================================
+        // 5. RENDER GRAFIK CHART.JS
+        // ==========================================
+        function renderChart(data) {
+            const labels = data.map(d => d.date || '');
+            const values = data.map(d => parseFloat(d.score || d.ips || 0));
+
+            // Logika Tren Naik/Turun
+            const trendBadge = document.getElementById('chart-trend-badge');
+            if (values.length >= 2) {
+                const diff = values[values.length - 1] - values[values.length - 2];
+                if (diff > 0.05) {
+                    trendBadge.className = 'chart-trend trend-up';
+                    trendBadge.innerHTML = '<i class="ph-bold ph-trend-up"></i> Naik';
+                } else if (diff < -0.05) {
+                    trendBadge.className = 'chart-trend trend-down';
+                    trendBadge.innerHTML = '<i class="ph-bold ph-trend-down"></i> Turun';
+                } else {
+                    trendBadge.className = 'chart-trend trend-same';
+                    trendBadge.innerHTML = '<i class="ph-bold ph-minus"></i> Stabil';
+                }
+            }
+
+            if (labels.length > 0) {
+                document.getElementById('chart-last-date').innerText = 'Pembaruan terakhir: ' + labels[labels.length - 1];
+            }
+
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+            gradient.addColorStop(0, 'rgba(59,130,246,0.3)');
+            gradient.addColorStop(1, 'rgba(59,130,246,0.01)');
+
+            if (scoreChart) scoreChart.destroy();
+
+            scoreChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Skor Genius',
+                        data: values,
+                        fill: true,
+                        backgroundColor: gradient,
+                        borderColor: '#3B82F6',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 9 }, color: '#94A3B8' } },
+                        y: { min: 0, max: 4, grid: { color: '#E2E8F0', drawBorder: false }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#94A3B8', stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // 6. UPLOAD FOTO & KOMPRESI BASE64
+        // ==========================================
+        window.uploadFotoBase64 = () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const btn = document.getElementById('btn-cam');
+            
+            if (!file) return;
+
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="ph-bold ph-spinner"></i>';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300; // Kompresi kuat agar ringan
+                    const scaleSize = MAX_WIDTH / img.width;
+                    
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+                    updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
+                    .then(() => {
+                        document.getElementById('display-pic').src = compressedBase64;
+                        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500 });
+                    })
+                    .catch(err => {
+                        Swal.fire('Error', 'Gagal menyimpan foto: ' + err.message, 'error');
+                    })
+                    .finally(() => {
+                        btn.classList.remove('loading');
+                        btn.innerHTML = '<i class="ph-fill ph-camera"></i>';
+                        fileInput.value = "";
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // ==========================================
+        // 7. SIMPAN PROFIL FORM
+        // ==========================================
+        document.getElementById('profile-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menyimpan...';
+            btn.disabled = true;
+
+            const payload = {
+                name: document.getElementById('inp-name').value,
+                noHp: document.getElementById('inp-hp').value,
+                tanggalLahir: document.getElementById('inp-dob').value,
+                alamat: document.getElementById('inp-addr').value,
+                bioSingkat: document.getElementById('inp-bio').value
+            };
+
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), payload);
+                document.getElementById('display-name').innerText = payload.name;
+
+                Swal.fire({
+                    icon: 'success', title: 'Tersimpan!',
+                    text: 'Data profil berhasil diperbarui.',
+                    confirmButtonColor: '#3B82F6', timer: 2000, showConfirmButton: false
+                });
+            } catch (err) {
+                Swal.fire('Error', err.message, 'error');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
