@@ -30,7 +30,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh;}
 
         .mobile-wrapper {
             width: 100%; max-width: 480px; min-height: 100vh;
@@ -44,6 +44,7 @@
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: var(--shadow-sm); z-index: 100;
             padding-top: max(16px, env(safe-area-inset-top)); 
+            position: sticky; top: 0;
         }
 
         .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); }
@@ -55,9 +56,7 @@
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
-        .hidden-view {
-            display: none !important;
-        }
+        .hidden-view { display: none !important; }
 
         /* --- LIST VIEW (DAFTAR KARTU) --- */
         #list-view .section-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; }
@@ -68,11 +67,10 @@
             border-left: 5px solid var(--blue-light);
             cursor: pointer; transition: transform 0.2s;
         }
-        
         .hw-card:active { transform: scale(0.97); }
 
         .hw-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .hw-code { font-size: 11px; font-weight: 600; color: var(--blue-light); background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px; }
+        .hw-code { font-size: 11px; font-weight: 600; color: var(--blue-light); background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;}
         .hw-deadline { font-size: 11px; color: #EF4444; font-weight: 500; display: flex; align-items: center; gap: 4px; }
         
         .hw-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--blue-dark); }
@@ -90,7 +88,6 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
 
-        /* Textarea Jawaban */
         textarea {
             width: 100%; min-height: 120px; padding: 12px; font-size: 14px;
             border-radius: 12px; border: 1.5px solid #E2E8F0; background: var(--bg-app);
@@ -98,7 +95,6 @@
         }
         textarea:focus { outline: none; border-color: var(--blue-light); background: var(--white); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        /* Tombol Bantuan AI */
         .btn-ai {
             background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: var(--white);
             border: none; padding: 10px 15px; border-radius: 10px; font-size: 12px; font-weight: 600;
@@ -112,7 +108,6 @@
         }
         .ai-response-box strong { color: #6D28D9; display: block; margin-bottom: 5px; }
 
-        /* Upload Area */
         .upload-area {
             border: 2px dashed #CBD5E1; border-radius: 12px; padding: 20px;
             text-align: center; cursor: pointer; transition: 0.3s; position: relative;
@@ -125,20 +120,17 @@
         .preview-container { display: none; margin-top: 15px; text-align: center; }
         .preview-container img { max-width: 100%; border-radius: 10px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; }
 
-        /* Tombol Finish */
         .btn-finish {
             background: var(--success); color: var(--white); width: 100%;
             padding: 14px; border: none; border-radius: 30px; font-size: 15px;
             font-weight: 700; cursor: pointer; margin-top: 30px; margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-            display: none; /* Sembunyi secara default */
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); display: none; 
             animation: fadeInUp 0.4s ease;
         }
         .btn-finish:active { transform: scale(0.97); }
 
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Lottie / Empty State */
         .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
         .empty-state i { font-size: 60px; color: #CBD5E1; margin-bottom: 15px; }
         .empty-state h3 { font-size: 16px; color: var(--blue-dark); margin-bottom: 5px; }
@@ -154,14 +146,18 @@
                 <i class="ph-bold ph-caret-left"></i>
             </div>
             <div class="header-title" id="header-title">Home Work</div>
-            <div style="width: 24px;"></div> <!-- Spacer untuk alignment tengah -->
+            <div style="width: 24px;"></div>
         </header>
 
         <!-- VIEW 1: DAFTAR TUGAS -->
         <div id="list-view" class="view-section">
             <div class="section-title">Tugas Tertunda (Pending)</div>
             <div id="hw-list-container">
-                <!-- Kartu Tugas Akan Dirender Di Sini -->
+                <!-- Kartu Tugas Akan Dirender Di Sini Secara Realtime -->
+                <div class="empty-state">
+                    <i class="ph-bold ph-spinner ph-spin"></i>
+                    <p>Memuat data tugas...</p>
+                </div>
             </div>
         </div>
 
@@ -175,7 +171,6 @@
                 <p id="det-instruction">Deskripsi instruksi akan muncul di sini...</p>
             </div>
 
-            <!-- Bantuan AI -->
             <button class="btn-ai" id="btn-ai" onclick="getAIHelp()">
                 <i class="ph-fill ph-magic-wand"></i> Minta Rekomendasi Jawaban AI
             </button>
@@ -184,13 +179,11 @@
                 <span id="ai-text">Memproses jawaban...</span>
             </div>
 
-            <!-- Kolom Input Teks -->
             <div class="form-group">
                 <label>Jawaban Langsung</label>
                 <textarea id="answer-text" placeholder="Ketik jawabanmu di sini jika tidak menggunakan file..." oninput="checkCompletion()"></textarea>
             </div>
 
-            <!-- Upload Bukti / Berkas -->
             <div class="form-group">
                 <label>Upload Bukti / Berkas (Wajib jika tidak ada teks)</label>
                 <div class="upload-area">
@@ -203,8 +196,7 @@
                 </div>
             </div>
 
-            <!-- Tombol Finish Tersembunyi -->
-            <button class="btn-finish" id="btn-finish" onclick="finishTask()">
+            <button class="btn-finish" id="btn-finish" onclick="submitTaskToFirebase()">
                 <i class="ph-bold ph-check-circle"></i> Selesaikan Tugas
             </button>
         </div>
@@ -214,37 +206,37 @@
     <!-- Script Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-        // ==========================================
-        // 1. DATA DUMMY TUGAS
-        // Nantinya ini di-fetch dari Firebase Firestore
-        // ==========================================
-        let pendingTasks = [
-            {
-                id: "T1",
-                code: "#HW-9281",
-                title: "Metodologi Sistem Pragmatik",
-                deadline: "Besok, 23:59",
-                instruction: "Buatlah analisis mengenai metodologi pengembangan sistem informasi secara pragmatik. Jelaskan kelebihan dan kekurangannya jika diterapkan pada startup teknologi."
-            },
-            {
-                id: "T2",
-                code: "#HW-7364",
-                title: "Laporan Basis Data Firebase",
-                deadline: "20 Agustus 2026",
-                instruction: "Kerjakan laporan perancangan basis data NoSQL menggunakan Firebase. Jika sudah selesai, upload PDF ke Google Drive dan kumpulkan screenshot bukti link Drive di sini."
-            }
-        ];
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
+            authDomain: "mading-cf676.firebaseapp.com",
+            projectId: "mading-cf676",
+            storageBucket: "mading-cf676.firebasestorage.app",
+            messagingSenderId: "72175203671",
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let pendingTasks = []; // Array data asli
         let currentActiveTaskId = null;
-        let currentBase64Image = null; // Menyimpan data base64 gambar
+        let currentBase64Image = null;
 
+        // Element UI
         const listView = document.getElementById('list-view');
         const detailView = document.getElementById('detail-view');
         const btnBack = document.getElementById('btn-back');
         const headerTitle = document.getElementById('header-title');
         
-        // Element Form Detail
         const btnFinish = document.getElementById('btn-finish');
         const answerText = document.getElementById('answer-text');
         const fileUpload = document.getElementById('file-upload');
@@ -252,6 +244,36 @@
         const imagePreview = document.getElementById('image-preview');
         const uploadLabel = document.getElementById('upload-label');
         const aiResponseBox = document.getElementById('ai-response');
+
+        // ==========================================
+        // 1. PANTAU LOGIN & TARIK DATA REALTIME
+        // ==========================================
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                
+                // Ambil semua tugas di mana statusnya masih "pending"
+                const q = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
+                
+                onSnapshot(q, (snapshot) => {
+                    pendingTasks = [];
+                    snapshot.forEach(doc => {
+                        pendingTasks.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderTaskList();
+                });
+
+            } else {
+                const container = document.getElementById('hw-list-container');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="ph-duotone ph-lock-key"></i>
+                        <h3>Akses Terbatas</h3>
+                        <p style="font-size: 13px;">Silakan masuk (login) terlebih dahulu untuk melihat dan mengerjakan tugas.</p>
+                    </div>
+                `;
+            }
+        });
 
         // ==========================================
         // 2. RENDER DAFTAR KARTU TUGAS
@@ -263,8 +285,8 @@
             if (pendingTasks.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <i class="ph-duotone ph-check-circle"></i>
-                        <h3>Semua Selesai!</h3>
+                        <i class="ph-duotone ph-check-circle" style="color: #10B981;"></i>
+                        <h3 style="color: #10B981;">Semua Selesai!</h3>
                         <p style="font-size: 13px;">Hebat, tidak ada tugas yang tertunda. Kamu bisa bersantai sekarang.</p>
                     </div>
                 `;
@@ -276,33 +298,41 @@
                 card.classList.add('hw-card');
                 card.onclick = () => openTaskDetail(task.id);
                 
+                // Pembuatan Kode Unik Otomatis jika tidak ada field code di database
+                const uniqueCode = task.code || `#HW-${task.id.substring(0,5).toUpperCase()}`;
+                
+                const deadlineText = task.time || task.deadline || "Belum ada tenggat";
+                const titleText = task.title || "Tugas Tanpa Judul";
+                const instructionText = task.instruction || "Tidak ada detail instruksi yang dilampirkan.";
+
                 card.innerHTML = `
                     <div class="hw-header">
-                        <span class="hw-code">${task.code}</span>
-                        <span class="hw-deadline"><i class="ph-fill ph-warning-circle"></i> ${task.deadline}</span>
+                        <span class="hw-code">${uniqueCode}</span>
+                        <span class="hw-deadline"><i class="ph-fill ph-warning-circle"></i> ${deadlineText}</span>
                     </div>
-                    <h3>${task.title}</h3>
-                    <p>${task.instruction}</p>
+                    <h3>${titleText}</h3>
+                    <p>${instructionText}</p>
                 `;
                 container.appendChild(card);
             });
         }
 
         // ==========================================
-        // 3. LOGIKA MEMBUKA DETAIL (Reference Card)
+        // 3. LOGIKA MEMBUKA DETAIL
         // ==========================================
-        function openTaskDetail(taskId) {
+        window.openTaskDetail = (taskId) => {
             const task = pendingTasks.find(t => t.id === taskId);
             if (!task) return;
 
             currentActiveTaskId = task.id;
 
-            // Isi Data ke UI Detail
-            document.getElementById('det-code').innerText = task.code;
-            document.getElementById('det-title').innerText = task.title;
-            document.getElementById('det-instruction').innerText = task.instruction;
+            const uniqueCode = task.code || `#HW-${task.id.substring(0,5).toUpperCase()}`;
 
-            // Reset Form (Bersihkan sisa input sebelumnya)
+            document.getElementById('det-code').innerText = uniqueCode;
+            document.getElementById('det-title').innerText = task.title || "Tugas Tanpa Judul";
+            document.getElementById('det-instruction').innerText = task.instruction || "Tidak ada detail instruksi.";
+
+            // Reset Form 
             answerText.value = '';
             fileUpload.value = '';
             currentBase64Image = null;
@@ -312,80 +342,66 @@
             btnFinish.style.display = 'none';
             aiResponseBox.style.display = 'none';
 
-            // Ubah Header & Transisi Layar
+            // Ubah Header & Layar
             headerTitle.innerText = "Ruang Kerja";
-            btnBack.onclick = closeTaskDetail; // Ubah fungsi tombol back
+            btnBack.onclick = closeTaskDetail; 
             
             listView.classList.add('hidden-view');
             detailView.classList.remove('hidden-view');
-        }
+        };
 
-        function closeTaskDetail() {
+        window.closeTaskDetail = () => {
             currentActiveTaskId = null;
             headerTitle.innerText = "Home Work";
-            btnBack.onclick = () => window.location.href = 'index.html'; // Kembalikan fungsi back ke home
+            btnBack.onclick = () => window.location.href = 'index.html'; 
             
             detailView.classList.add('hidden-view');
             listView.classList.remove('hidden-view');
-        }
+        };
 
         // ==========================================
-        // 4. LOGIKA BANTUAN AI
+        // 4. LOGIKA BANTUAN AI (Simulasi sementara menunggu koneksi Groq)
         // ==========================================
-        function getAIHelp() {
+        window.getAIHelp = () => {
             const btnAI = document.getElementById('btn-ai');
             btnAI.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> Meminta bantuan...`;
             btnAI.disabled = true;
 
-            // Simulasi fetch API Groq AI (Delay 1.5 detik)
             setTimeout(() => {
                 aiResponseBox.style.display = 'block';
-                document.getElementById('ai-text').innerText = "Berikut adalah referensi jawaban yang bisa kamu gunakan: Metodologi pragmatik mengutamakan kecepatan dan hasil nyata (MVP) dibanding dokumentasi panjang. Kelebihannya adalah time-to-market sangat cepat untuk startup, namun kekurangannya sistem rentan terhadap bug teknis di masa depan jika tidak didokumentasi dengan baik.";
-                
+                document.getElementById('ai-text').innerText = "Fitur rekomendasi jawaban otomatis berbasis konteks tugas ini sedang dipersiapkan. Untuk sementara, silakan tulis jawabanmu secara manual di bawah ini.";
                 btnAI.innerHTML = `<i class="ph-fill ph-magic-wand"></i> AI Telah Merespon`;
-                btnAI.style.background = "#6D28D9"; // Ubah warna jadi agak redup
+                btnAI.style.background = "#6D28D9"; 
             }, 1500);
-        }
+        };
 
         // ==========================================
-        // 5. UPLOAD GAMBAR & KONVERSI BASE64
+        // 5. UPLOAD GAMBAR (BASE64)
         // ==========================================
-        function handleFileUpload(event) {
+        window.handleFileUpload = (event) => {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Batasi ukuran file misal max 5MB agar Base64 tidak merusak memori hp
             if (file.size > 5 * 1024 * 1024) {
-                Swal.fire({ icon: 'warning', title: 'File Terlalu Besar', text: 'Ukuran gambar maksimal 5MB.' });
+                Swal.fire({ icon: 'warning', title: 'File Terlalu Besar', text: 'Maksimal 5MB.' });
                 fileUpload.value = '';
                 return;
             }
 
             const reader = new FileReader();
-            
-            // Proses mengubah gambar menjadi string Base64
             reader.onloadend = function () {
-                currentBase64Image = reader.result; // Hasilnya (data:image/jpeg;base64,...)
+                currentBase64Image = reader.result; 
                 
-                // Tampilkan ke UI
                 uploadLabel.innerText = "Gambar berhasil dimuat (" + file.name + ")";
                 imagePreview.src = currentBase64Image;
                 previewContainer.style.display = 'block';
 
-                checkCompletion(); // Cek apakah tombol Finish boleh muncul
-                
-                // Console log ini membuktikan base64 sudah ditangkap dan siap dikirim ke Firebase
-                console.log("String Base64 Siap Kirim (Hanya preview 50 karakter):", currentBase64Image.substring(0, 50) + "...");
+                window.checkCompletion(); 
             };
-
             reader.readAsDataURL(file);
-        }
+        };
 
-        // ==========================================
-        // 6. VALIDASI MUNCULNYA TOMBOL FINISH
-        // ==========================================
-        function checkCompletion() {
-            // Tombol Finish HANYA muncul jika: Ada teks jawaban ATAU ada Base64 gambar
+        window.checkCompletion = () => {
             const isTextFilled = answerText.value.trim().length > 0;
             const isImageUploaded = currentBase64Image !== null;
 
@@ -394,48 +410,67 @@
             } else {
                 btnFinish.style.display = 'none';
             }
-        }
+        };
 
         // ==========================================
-        // 7. SELESAIKAN TUGAS (PINDAH KE FINISH SYSTEM)
+        // 6. SUBMIT TUGAS KE FIREBASE (REAL)
         // ==========================================
-        function finishTask() {
-            Swal.fire({
+        window.submitTaskToFirebase = async () => {
+            if (!currentActiveTaskId || !currentUser) return;
+
+            const result = await Swal.fire({
                 title: 'Kumpulkan Tugas?',
-                text: "Tugas ini akan dipindahkan ke Arsip (Finish System).",
+                text: "Tugas ini akan diselesaikan dan dipindahkan ke Arsip.",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#10B981',
                 cancelButtonColor: '#64748B',
                 confirmButtonText: 'Ya, Selesaikan!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    
-                    // 1. Hapus tugas dari array pending (Simulasi pindah status di database)
-                    pendingTasks = pendingTasks.filter(t => t.id !== currentActiveTaskId);
-                    
-                    // 2. Beri Notifikasi Sukses
+            });
+
+            if (result.isConfirmed) {
+                const originalBtnHtml = btnFinish.innerHTML;
+                btnFinish.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> Menyimpan Data...`;
+                btnFinish.disabled = true;
+
+                try {
+                    // 1. UPDATE DOKUMEN TUGAS MENJADI COMPLETED
+                    const taskRef = doc(db, "users", currentUser.uid, "tasks", currentActiveTaskId);
+                    await updateDoc(taskRef, {
+                        status: "completed",
+                        answerText: answerText.value.trim(),
+                        base64Image: currentBase64Image, // Akan bernilai null jika tidak ada gambar
+                        completedAt: serverTimestamp()
+                    });
+
+                    // 2. UPDATE SKOR & STATISTIK PROFIL USER
+                    const userRef = doc(db, "users", currentUser.uid);
+                    await updateDoc(userRef, {
+                        tasksDone: increment(1),
+                        score: increment(0.25) // Tambah 0.25 poin skor untuk setiap tugas
+                    });
+
                     Swal.fire({
                         icon: 'success',
-                        title: 'Tugas Diselesaikan!',
-                        text: 'Tugas berhasil dipindahkan ke Finish System.',
+                        title: 'Berhasil!',
+                        text: 'Tugas telah dikumpulkan dan Skor Genius Anda bertambah.',
                         confirmButtonColor: '#3B82F6',
                         timer: 2000,
                         showConfirmButton: false
                     });
 
-                    // 3. Kembali ke List View & Re-render
-                    closeTaskDetail();
-                    renderTaskList();
-                    
-                    // (Opsional: Di sini nanti kamu tambahkan logika push/simpan data jawaban + base64 ke Firestore 'Finish System')
+                    // Kembali ke layar List (Data akan otomatis hilang karena onSnapshot)
+                    window.closeTaskDetail();
+
+                } catch (error) {
+                    console.error("Gagal update task:", error);
+                    Swal.fire('Error', 'Gagal mengirim tugas: ' + error.message, 'error');
+                } finally {
+                    btnFinish.innerHTML = originalBtnHtml;
+                    btnFinish.disabled = false;
                 }
-            });
-        }
-
-        // INIT SAAT PERTAMA KALI HALAMAN DIBUKA
-        renderTaskList();
-
+            }
+        };
     </script>
 </body>
 </html>
