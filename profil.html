@@ -6,6 +6,8 @@
     <title>Profil - Genius</title>
     
     <meta name="theme-color" content="#1E3A8A">
+    <!-- Menghilangkan Error Favicon 404 -->
+    <link rel="icon" href="https://i.imgur.com/PpxQu9m.png" type="image/png">
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -267,11 +269,12 @@
             <!-- PROFILE HERO CARD -->
             <div class="profile-card">
                 <div class="pic-wrapper">
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="uploadFotoBase64()">
-                    <!-- Gambar bisa diklik untuk membuka modal foto -->
+                    <!-- Input file (Hidden) -->
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    
                     <img src="https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff" id="display-pic" class="profile-pic" title="Lihat Foto">
-                    <!-- Tombol kamera di hero memicu pop up yang sama -->
-                    <button class="btn-cam" id="btn-cam" onclick="openPicModal()">
+                    
+                    <button class="btn-cam" id="btn-cam" title="Buka Menu Foto">
                         <i class="ph-fill ph-camera"></i>
                     </button>
                 </div>
@@ -424,11 +427,11 @@
             
             <div class="pic-actions">
                 <!-- Tombol Edit/Ubah Foto -->
-                <button class="pic-btn edit" onclick="document.getElementById('fileInput').click()" title="Ubah Foto">
+                <button class="pic-btn edit" id="btn-trigger-upload" title="Ubah Foto">
                     <i class="ph-fill ph-pencil-simple"></i>
                 </button>
                 <!-- Tombol Hapus Foto -->
-                <button class="pic-btn delete" onclick="deleteProfilePic()" title="Hapus Foto">
+                <button class="pic-btn delete" id="btn-delete-pic" title="Hapus Foto">
                     <i class="ph-fill ph-trash"></i>
                 </button>
             </div>
@@ -443,7 +446,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Konfigurasi Firebase
         const firebaseConfig = {
@@ -476,33 +479,21 @@
         // Modal Foto
         const profilePicModal = document.getElementById('profile-pic-modal');
         const modalFullPic = document.getElementById('modal-full-pic');
+        const fileInput = document.getElementById('fileInput');
 
         // ==========================================
-        // TOGGLE VIEW / EDIT MODE
+        // DEKLARASI FUNGSI GLOBAL & EVENT LISTENER
         // ==========================================
-        btnToggleEdit.addEventListener('click', () => {
-            viewMode.classList.add('hide-section');
-            btnLogout.classList.add('hide-section'); 
-            editMode.classList.remove('hide-section');
-            btnToggleEdit.style.display = 'none'; 
-        });
-
-        btnCancelEdit.addEventListener('click', () => {
-            editMode.classList.add('hide-section');
-            viewMode.classList.remove('hide-section');
-            btnLogout.classList.remove('hide-section');
-            btnToggleEdit.style.display = 'flex'; 
-        });
-
-        // ==========================================
-        // LOGIKA MODAL FOTO PROFIL
-        // ==========================================
-        document.getElementById('display-pic').addEventListener('click', openPicModal);
         
+        // Fungsi Buka Modal Foto
         window.openPicModal = () => {
             modalFullPic.src = document.getElementById('display-pic').src;
             profilePicModal.classList.add('active');
         };
+
+        // Pasang Event Listener ke Elemen (Aman & Bebas Bug)
+        document.getElementById('display-pic').addEventListener('click', window.openPicModal);
+        document.getElementById('btn-cam').addEventListener('click', window.openPicModal);
 
         document.getElementById('btn-close-pic-modal').addEventListener('click', () => {
             profilePicModal.classList.remove('active');
@@ -512,7 +503,60 @@
             if (e.target === profilePicModal) profilePicModal.classList.remove('active');
         });
 
-        // FUNGSI HAPUS FOTO
+        // Event Listener untuk Tombol Pensil (Upload) di dalam Modal
+        document.getElementById('btn-trigger-upload').addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // FUNGSI: Upload Foto ke Firebase
+        window.uploadFotoBase64 = () => {
+            const file = fileInput.files[0];
+            const btnCam = document.getElementById('btn-cam');
+            
+            if (!file) return;
+
+            profilePicModal.classList.remove('active'); // Tutup pop-up
+
+            btnCam.classList.add('loading');
+            btnCam.innerHTML = '<i class="ph-bold ph-spinner"></i>';
+            Swal.fire({title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+                    updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
+                    .then(() => {
+                        document.getElementById('display-pic').src = compressedBase64;
+                        modalFullPic.src = compressedBase64;
+                        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500, showConfirmButton: false });
+                    })
+                    .finally(() => {
+                        btnCam.classList.remove('loading');
+                        btnCam.innerHTML = '<i class="ph-fill ph-camera"></i>';
+                        fileInput.value = "";
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        // Hubungkan input file dengan fungsi upload
+        fileInput.addEventListener('change', window.uploadFotoBase64);
+
+        // FUNGSI: Hapus Foto Profil
         window.deleteProfilePic = () => {
             if (!currentUser) return;
             Swal.fire({
@@ -540,18 +584,35 @@
                 }
             });
         };
+        // Hubungkan tombol tong sampah dengan fungsi hapus
+        document.getElementById('btn-delete-pic').addEventListener('click', window.deleteProfilePic);
+
+        // TOGGLE VIEW / EDIT MODE
+        btnToggleEdit.addEventListener('click', () => {
+            viewMode.classList.add('hide-section');
+            btnLogout.classList.add('hide-section'); 
+            editMode.classList.remove('hide-section');
+            btnToggleEdit.style.display = 'none'; 
+        });
+
+        btnCancelEdit.addEventListener('click', () => {
+            editMode.classList.add('hide-section');
+            viewMode.classList.remove('hide-section');
+            btnLogout.classList.remove('hide-section');
+            btnToggleEdit.style.display = 'flex'; 
+        });
 
         // ==========================================
         // 1. CEK AUTENTIKASI
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Dengarkan perubahan dokumen profil
+                // Dengarkan perubahan dokumen profil realtime
                 onSnapshot(doc(db, 'users', user.uid), (snap) => {
                     if (snap.exists()) {
                         currentUser = { uid: user.uid, ...snap.data() };
                     } else {
-                        // Jika dokumen belum sempurna terbentuk (fallback safety)
+                        // Fallback
                         currentUser = { uid: user.uid, name: user.displayName || 'Pengguna', email: user.email };
                     }
                     renderProfile(currentUser);
@@ -586,7 +647,7 @@
             document.getElementById('stat-score-val').innerText = score.toFixed(2);
             document.getElementById('chart-current-score').innerHTML = `${score.toFixed(2)} <span>Skor Terkini</span>`;
 
-            // HITUNG HARI AKTIF REAL
+            // HITUNG HARI AKTIF REAL (Berdasarkan createdAt)
             let hariAktif = 1;
             if (user.createdAt) {
                 const createdDate = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
@@ -626,10 +687,10 @@
         }
 
         // ==========================================
-        // 3. GENERATE GRAFIK DARI DATA HOME WORK (BEBAS CRASH)
+        // 3. GENERATE GRAFIK DARI DATA HOME WORK
         // ==========================================
         async function generateDynamicChart(uid) {
-            // Kita tarik semua tasks dan memfilternya via JavaScript agar tidak memicu error missing composite index di Firestore
+            // Kita tarik semua tasks (Bebas error Composite Index)
             const q = query(collection(db, "users", uid, "tasks"));
             
             onSnapshot(q, (snapshot) => {
@@ -759,57 +820,6 @@
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             }
-        };
-
-        // ==========================================
-        // 5. UPLOAD FOTO (BASE64)
-        // ==========================================
-        window.uploadFotoBase64 = () => {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            const btn = document.getElementById('btn-cam');
-            
-            if (!file) return;
-
-            profilePicModal.classList.remove('active');
-
-            btn.classList.add('loading');
-            btn.innerHTML = '<i class="ph-bold ph-spinner"></i>';
-            Swal.fire({title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 300; 
-                    const scaleSize = MAX_WIDTH / img.width;
-                    
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-
-                    updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
-                    .then(() => {
-                        document.getElementById('display-pic').src = compressedBase64;
-                        modalFullPic.src = compressedBase64;
-                        
-                        profilePicModal.classList.add('active'); 
-                        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500, showConfirmButton: false });
-                    })
-                    .finally(() => {
-                        btn.classList.remove('loading');
-                        btn.innerHTML = '<i class="ph-fill ph-camera"></i>';
-                        fileInput.value = "";
-                    });
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
         };
 
         // ==========================================
