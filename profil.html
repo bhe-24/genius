@@ -91,8 +91,7 @@
             width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
             border: 3px solid rgba(255,255,255,0.2); background: var(--white);
             position: relative; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            cursor: pointer; /* Memberi tanda bisa di-klik */
-            transition: 0.2s;
+            cursor: pointer; transition: 0.2s;
         }
         .profile-pic:active { transform: scale(0.95); }
 
@@ -268,10 +267,10 @@
             <!-- PROFILE HERO CARD -->
             <div class="profile-card">
                 <div class="pic-wrapper">
-                    <!-- Input file (Hidden) -->
                     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="uploadFotoBase64()">
+                    <!-- Gambar bisa diklik untuk membuka modal foto -->
                     <img src="https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff" id="display-pic" class="profile-pic" title="Lihat Foto">
-                    <!-- Tombol kamera kecil (shortcut ke modal/ubah foto) -->
+                    <!-- Tombol kamera di hero memicu pop up yang sama -->
                     <button class="btn-cam" id="btn-cam" onclick="openPicModal()">
                         <i class="ph-fill ph-camera"></i>
                     </button>
@@ -315,7 +314,7 @@
                             0.00 <span>Skor Terkini</span>
                         </div>
                         <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" id="chart-last-date">
-                            Memuat grafik dari kalender...
+                            Memuat grafik dari arsip...
                         </div>
                     </div>
                     <div class="chart-trend trend-same" id="chart-trend-badge">
@@ -331,6 +330,7 @@
             <div class="form-card">
                 <div class="card-title">
                     <div class="card-title-left"><i class="ph-fill ph-identification-card"></i> Informasi Pribadi</div>
+                    <!-- Tombol Pensil -->
                     <button class="btn-edit-mode" id="btn-toggle-edit" title="Edit Profil">
                         <i class="ph-bold ph-pencil-simple"></i>
                     </button>
@@ -497,7 +497,6 @@
         // ==========================================
         // LOGIKA MODAL FOTO PROFIL
         // ==========================================
-        // Ketuk gambar profil untuk membuka pop-up
         document.getElementById('display-pic').addEventListener('click', openPicModal);
         
         window.openPicModal = () => {
@@ -505,17 +504,15 @@
             profilePicModal.classList.add('active');
         };
 
-        // Tutup Modal
         document.getElementById('btn-close-pic-modal').addEventListener('click', () => {
             profilePicModal.classList.remove('active');
         });
 
-        // Tutup dengan mengetuk area gelap
         profilePicModal.addEventListener('click', (e) => {
             if (e.target === profilePicModal) profilePicModal.classList.remove('active');
         });
 
-        // Fungsi Hapus Foto
+        // FUNGSI HAPUS FOTO
         window.deleteProfilePic = () => {
             if (!currentUser) return;
             Swal.fire({
@@ -536,7 +533,7 @@
                         document.getElementById('display-pic').src = defaultPic;
                         modalFullPic.src = defaultPic;
                         
-                        profilePicModal.classList.remove('active'); // Tutup pop-up otomatis
+                        profilePicModal.classList.remove('active'); 
                         Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Foto profil berhasil dihapus.', timer: 1500, showConfirmButton: false });
                     })
                     .catch(err => Swal.fire('Error', err.message, 'error'));
@@ -549,15 +546,22 @@
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Dengarkan perubahan dokumen profil realtime
+                // Dengarkan perubahan dokumen profil
                 onSnapshot(doc(db, 'users', user.uid), (snap) => {
                     if (snap.exists()) {
                         currentUser = { uid: user.uid, ...snap.data() };
-                        renderProfile(currentUser);
+                    } else {
+                        // Jika dokumen belum sempurna terbentuk (fallback safety)
+                        currentUser = { uid: user.uid, name: user.displayName || 'Pengguna', email: user.email };
                     }
+                    renderProfile(currentUser);
+                }, (error) => {
+                    console.error("Gagal menarik profil:", error);
+                    skeletonView.classList.add('hide-section');
+                    realContent.classList.remove('hide-section');
                 });
 
-                // Tarik riwayat Tugas untuk Grafik Realtime
+                // Tarik riwayat Tugas untuk Grafik
                 generateDynamicChart(user.uid);
                 
             } else {
@@ -573,7 +577,7 @@
             document.getElementById('display-name').innerText = name;
             document.getElementById('display-email').innerText = user.email || '';
 
-            // Update Counter atas
+            // Update Counter
             const score = parseFloat(user.score || 0);
             const tasksDone = user.tasksDone || 0;
             document.getElementById('display-tasks').innerText = `${tasksDone} Tugas`;
@@ -582,7 +586,7 @@
             document.getElementById('stat-score-val').innerText = score.toFixed(2);
             document.getElementById('chart-current-score').innerHTML = `${score.toFixed(2)} <span>Skor Terkini</span>`;
 
-            // HITUNG HARI AKTIF REAL (Berdasarkan createdAt)
+            // HITUNG HARI AKTIF REAL
             let hariAktif = 1;
             if (user.createdAt) {
                 const createdDate = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
@@ -592,7 +596,6 @@
             document.getElementById('stat-days').innerText = hariAktif;
 
             // FOTO PROFIL
-            const currentSrc = document.getElementById('display-pic').src;
             if (user.photoURL) {
                 document.getElementById('display-pic').src = user.photoURL;
                 if(profilePicModal.classList.contains('active')) modalFullPic.src = user.photoURL;
@@ -604,7 +607,6 @@
 
             // ISI TEKS MODE BACA (VIEW)
             document.getElementById('view-name').innerText = name;
-            
             const formatView = (val) => val && val.trim() !== "" ? val : '<span class="info-empty">Belum diatur</span>';
             document.getElementById('view-hp').innerHTML = formatView(user.noHp);
             document.getElementById('view-dob').innerHTML = formatView(user.tanggalLahir);
@@ -618,22 +620,23 @@
             document.getElementById('inp-addr').value = user.alamat || '';
             document.getElementById('inp-bio').value = user.bioSingkat || '';
 
-            // HILANGKAN SKELETON
+            // HILANGKAN SKELETON SETELAH DATA PROFILE SIAP
             skeletonView.classList.add('hide-section');
             realContent.classList.remove('hide-section');
         }
 
         // ==========================================
-        // 3. GENERATE GRAFIK DARI DATA HOME WORK
+        // 3. GENERATE GRAFIK DARI DATA HOME WORK (BEBAS CRASH)
         // ==========================================
         async function generateDynamicChart(uid) {
-            const q = query(collection(db, "users", uid, "tasks"), where("status", "==", "completed"), orderBy("completedAt", "asc"));
+            // Kita tarik semua tasks dan memfilternya via JavaScript agar tidak memicu error missing composite index di Firestore
+            const q = query(collection(db, "users", uid, "tasks"));
             
             onSnapshot(q, (snapshot) => {
                 let taskHistory = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.completedAt) {
+                    if (data.status === "completed" && data.completedAt) {
                         const dateObj = data.completedAt.toDate ? data.completedAt.toDate() : new Date(data.completedAt);
                         const dateKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
                         taskHistory.push(dateKey);
@@ -657,8 +660,8 @@
                     chartData.push({ date: label, score: runningScore });
                 }
 
-                // Render ke kanvas agar grafik tidak bentrok dengan display: none dari parent
-                setTimeout(() => renderChart(chartData), 100);
+                // Render grafik dengan sedikit delay agar canvas siap di DOM (Anti Blank)
+                setTimeout(() => renderChart(chartData), 300);
             });
         }
 
@@ -722,7 +725,7 @@
         // ==========================================
         // 4. SIMPAN PROFIL FORM
         // ==========================================
-        document.getElementById('profile-edit-mode').onsubmit = async (e) => {
+        document.getElementById('profile-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save');
             const originalHtml = btn.innerHTML;
@@ -768,7 +771,6 @@
             
             if (!file) return;
 
-            // Jika modal sedang terbuka, tutup dulu untuk melihat loading
             profilePicModal.classList.remove('active');
 
             btn.classList.add('loading');
@@ -795,6 +797,8 @@
                     .then(() => {
                         document.getElementById('display-pic').src = compressedBase64;
                         modalFullPic.src = compressedBase64;
+                        
+                        profilePicModal.classList.add('active'); 
                         Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500, showConfirmButton: false });
                     })
                     .finally(() => {
