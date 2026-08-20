@@ -29,7 +29,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh;}
 
         .mobile-wrapper {
             width: 100%; max-width: 480px; min-height: 100vh;
@@ -56,6 +56,18 @@
         }
 
         .hidden-view { display: none !important; }
+
+        /* --- SKELETON SHIMMER EFFECT --- */
+        .skeleton-box {
+            position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px;
+        }
+        .skeleton-box::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.8) 20%, rgba(255,255,255, 0) 40%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
 
         /* --- LIST VIEW (DAFTAR ARSIP) --- */
         .archive-stats {
@@ -88,8 +100,8 @@
             border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 22px; flex-shrink: 0;
         }
         
-        .archive-info { flex: 1; }
-        .archive-info h4 { font-size: 14px; font-weight: 700; color: var(--blue-dark); margin-bottom: 2px; }
+        .archive-info { flex: 1; overflow: hidden; }
+        .archive-info h4 { font-size: 14px; font-weight: 700; color: var(--blue-dark); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .archive-info p { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
 
         /* --- DETAIL VIEW (READ ONLY) --- */
@@ -162,8 +174,25 @@
             <div style="width: 24px;"></div>
         </header>
 
-        <!-- VIEW 1: DAFTAR ARSIP TUGAS SELESAI -->
-        <div id="list-view" class="view-section">
+        <!-- ============================================== -->
+        <!-- SKELETON VIEW (Tampil saat memuat data) -->
+        <!-- ============================================== -->
+        <div id="skeleton-view" class="view-section">
+            <div class="skeleton-box" style="height: 100px; border-radius: 16px; margin-bottom: 20px;"></div>
+            <div class="skeleton-box" style="height: 45px; border-radius: 12px; margin-bottom: 20px;"></div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="skeleton-box" style="height: 74px; border-radius: 16px;"></div>
+                <div class="skeleton-box" style="height: 74px; border-radius: 16px;"></div>
+                <div class="skeleton-box" style="height: 74px; border-radius: 16px;"></div>
+                <div class="skeleton-box" style="height: 74px; border-radius: 16px;"></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 1: DAFTAR ARSIP TUGAS SELESAI (Hidden Default)-->
+        <!-- ============================================== -->
+        <div id="list-view" class="view-section hidden-view">
             
             <div class="archive-stats">
                 <div>
@@ -179,14 +208,13 @@
             </div>
 
             <div id="archive-list-container">
-                <div class="empty-state">
-                    <i class="ph-bold ph-spinner ph-spin"></i>
-                    <p>Memuat arsip dari server...</p>
-                </div>
+                <!-- Data asli dimasukkan ke sini melalui JS -->
             </div>
         </div>
 
+        <!-- ============================================== -->
         <!-- VIEW 2: DETAIL ARSIP (READ ONLY) -->
+        <!-- ============================================== -->
         <div id="detail-view" class="view-section hidden-view">
             
             <div class="detail-header-card">
@@ -246,8 +274,10 @@
         // State Penyimpanan Data Asli
         let finishedTasks = [];
         let currentUser = null;
+        let isFetchingFirstTime = true; 
 
         // Referensi UI
+        const skeletonView = document.getElementById('skeleton-view');
         const listView = document.getElementById('list-view');
         const detailView = document.getElementById('detail-view');
         const btnBack = document.getElementById('btn-back');
@@ -258,6 +288,15 @@
         const detInstruction = document.getElementById('det-instruction');
         const detAnswer = document.getElementById('det-answer');
         const detImageContainer = document.getElementById('det-image-container');
+
+        // Fungsi Menghilangkan Skeleton
+        function hideSkeleton() {
+            skeletonView.classList.add('hidden-view');
+            // Tampilkan list view hanya jika kita sedang tidak berada di detail view
+            if (detailView.classList.contains('hidden-view')) {
+                listView.classList.remove('hidden-view');
+            }
+        }
 
         // ==========================================
         // 1. PANTAU LOGIN & TARIK DATA REALTIME
@@ -275,6 +314,7 @@
                     </div>
                 `;
                 document.getElementById('total-done').innerText = "0";
+                hideSkeleton();
             }
         });
 
@@ -282,7 +322,6 @@
         // 2. FUNGSI TARIK DATA TUGAS SELESAI
         // ==========================================
         function listenToCompletedTasks(uid) {
-            // Ambil tugas yang statusnya "completed"
             const q = query(collection(db, "users", uid, "tasks"), where("status", "==", "completed"));
 
             onSnapshot(q, (snapshot) => {
@@ -322,6 +361,12 @@
                 
                 // Render List
                 renderArchiveList(finishedTasks);
+
+                // Matikan loading animasi jika ini tarikan data pertama
+                if (isFetchingFirstTime) {
+                    hideSkeleton();
+                    isFetchingFirstTime = false;
+                }
             });
         }
 
@@ -394,7 +439,7 @@
             // Ubah Navbar
             headerTitle.innerHTML = "Detail Riwayat";
             btnBack.onclick = window.closeArchiveDetail; 
-            btnBack.href = "javascript:void(0)"; // Menahan agar tidak langsung pindah html
+            btnBack.href = "javascript:void(0)"; 
             
             listView.classList.add('hidden-view');
             detailView.classList.remove('hidden-view');
@@ -403,7 +448,7 @@
         window.closeArchiveDetail = () => {
             headerTitle.innerHTML = '<i class="ph-fill ph-archive-box"></i> Finish System';
             btnBack.onclick = null; 
-            btnBack.href = "index.html"; // Kembalikan fungsionalitas tombol kembali ke dashboard
+            btnBack.href = "index.html"; 
             
             detailView.classList.add('hidden-view');
             listView.classList.remove('hidden-view');
