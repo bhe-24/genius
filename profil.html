@@ -194,7 +194,7 @@
 
         .hide-section { display: none !important; }
 
-        /* --- MODAL FOTO PROFIL --- */
+        /* --- MODAL FOTO PROFIL (FULLSCREEN) --- */
         .pic-modal {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
@@ -251,7 +251,6 @@
             <div class="profile-card skeleton-box" style="height: 250px;"></div>
             <div class="stats-card skeleton-box" style="height: 80px;"></div>
             
-            <!-- Skeleton Chart Diperbaiki agar rapi dan membentuk grafik -->
             <div class="chart-card">
                 <div class="skeleton-box" style="height: 20px; width: 50%; border-radius:4px; margin-bottom: 15px;"></div>
                 <div class="skeleton-box" style="height: 40px; width: 30%; border-radius:4px; margin-bottom: 20px;"></div>
@@ -269,10 +268,10 @@
             <!-- PROFILE HERO CARD -->
             <div class="profile-card">
                 <div class="pic-wrapper">
-                    <!-- Input file disembunyikan, akan di-trigger dari modal -->
+                    <!-- Input file (Hidden) -->
                     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="uploadFotoBase64()">
-                    <img src="https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff" id="display-pic" class="profile-pic" title="Lihat/Ubah Foto">
-                    <!-- Tombol kamera di card -->
+                    <img src="https://ui-avatars.com/api/?name=User&background=3B82F6&color=fff" id="display-pic" class="profile-pic" title="Lihat Foto">
+                    <!-- Tombol kamera kecil (shortcut ke modal/ubah foto) -->
                     <button class="btn-cam" id="btn-cam" onclick="openPicModal()">
                         <i class="ph-fill ph-camera"></i>
                     </button>
@@ -332,7 +331,6 @@
             <div class="form-card">
                 <div class="card-title">
                     <div class="card-title-left"><i class="ph-fill ph-identification-card"></i> Informasi Pribadi</div>
-                    <!-- Tombol Pensil -->
                     <button class="btn-edit-mode" id="btn-toggle-edit" title="Edit Profil">
                         <i class="ph-bold ph-pencil-simple"></i>
                     </button>
@@ -418,7 +416,7 @@
         </div> <!-- End Content -->
 
         <!-- ============================================== -->
-        <!-- MODAL FOTO PROFIL -->
+        <!-- MODAL FOTO PROFIL (FULLSCREEN) -->
         <!-- ============================================== -->
         <div class="pic-modal" id="profile-pic-modal">
             <i class="ph-bold ph-x close-modal-btn" id="btn-close-pic-modal"></i>
@@ -499,7 +497,7 @@
         // ==========================================
         // LOGIKA MODAL FOTO PROFIL
         // ==========================================
-        // Klik gambar atau tombol kamera untuk membuka popup
+        // Ketuk gambar profil untuk membuka pop-up
         document.getElementById('display-pic').addEventListener('click', openPicModal);
         
         window.openPicModal = () => {
@@ -512,7 +510,7 @@
             profilePicModal.classList.remove('active');
         });
 
-        // Klik background gelap untuk tutup modal
+        // Tutup dengan mengetuk area gelap
         profilePicModal.addEventListener('click', (e) => {
             if (e.target === profilePicModal) profilePicModal.classList.remove('active');
         });
@@ -538,7 +536,7 @@
                         document.getElementById('display-pic').src = defaultPic;
                         modalFullPic.src = defaultPic;
                         
-                        profilePicModal.classList.remove('active'); // Tutup modal otomatis
+                        profilePicModal.classList.remove('active'); // Tutup pop-up otomatis
                         Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Foto profil berhasil dihapus.', timer: 1500, showConfirmButton: false });
                     })
                     .catch(err => Swal.fire('Error', err.message, 'error'));
@@ -659,7 +657,8 @@
                     chartData.push({ date: label, score: runningScore });
                 }
 
-                renderChart(chartData);
+                // Render ke kanvas agar grafik tidak bentrok dengan display: none dari parent
+                setTimeout(() => renderChart(chartData), 100);
             });
         }
 
@@ -769,6 +768,9 @@
             
             if (!file) return;
 
+            // Jika modal sedang terbuka, tutup dulu untuk melihat loading
+            profilePicModal.classList.remove('active');
+
             btn.classList.add('loading');
             btn.innerHTML = '<i class="ph-bold ph-spinner"></i>';
             Swal.fire({title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
@@ -792,12 +794,7 @@
                     updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
                     .then(() => {
                         document.getElementById('display-pic').src = compressedBase64;
-                        if(profilePicModal.classList.contains('active')) {
-                            modalFullPic.src = compressedBase64;
-                        } else {
-                            profilePicModal.classList.add('active'); // Buka pop up jika tidak sedang terbuka
-                            modalFullPic.src = compressedBase64;
-                        }
+                        modalFullPic.src = compressedBase64;
                         Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500, showConfirmButton: false });
                     })
                     .finally(() => {
