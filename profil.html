@@ -48,7 +48,18 @@
         }
 
         .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
-        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; }
+        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+
+        /* --- SKELETON SHIMMER EFFECT --- */
+        .skeleton-box { position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px; }
+        .skeleton-box::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.8) 20%, rgba(255,255,255, 0) 40%);
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-dark { background-color: rgba(255,255,255,0.2); }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
 
         /* CONTENT AREA */
         .content { padding: 20px; flex: 1; overflow-y: auto; }
@@ -89,8 +100,6 @@
             justify-content: center; align-items: center; font-size: 18px; z-index: 3; transition: 0.2s;
         }
         .btn-cam:active { transform: scale(0.9); }
-        .btn-cam.loading { animation: spin 1s infinite linear; background: #94A3B8; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .user-name { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; z-index: 2; position: relative; }
         .user-email { font-size: 12px; opacity: 0.8; margin-bottom: 15px; z-index: 2; position: relative; }
@@ -114,8 +123,9 @@
 
         /* CHART CARD */
         .chart-card { background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; margin-bottom: 20px; }
-        .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .card-title i { color: var(--blue-light); font-size: 18px; }
+        .card-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .card-title-left { display: flex; align-items: center; gap: 8px; }
+        .card-title-left i { color: var(--blue-light); font-size: 18px; }
         
         .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
         .chart-score { font-size: 28px; font-weight: 700; color: var(--blue-dark); line-height: 1; }
@@ -128,8 +138,29 @@
 
         .chart-container { position: relative; height: 160px; width: 100%; }
 
-        /* FORM CARD */
+        /* PERSONAL INFO CARD */
         .form-card { background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; margin-bottom: 30px; }
+        
+        /* Tombol Pensil (Edit Mode) */
+        .btn-edit-mode {
+            background: rgba(59, 130, 246, 0.1); color: var(--blue-light);
+            border: none; width: 32px; height: 32px; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center; font-size: 18px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-edit-mode:active { transform: scale(0.9); background: var(--blue-light); color: white; }
+
+        /* --- READ ONLY VIEW (Tampilan Profil) --- */
+        .info-list { display: flex; flex-direction: column; gap: 15px; }
+        .info-item { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; }
+        .info-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(59, 130, 246, 0.08); color: var(--blue-light); display: flex; justify-content: center; align-items: center; font-size: 20px; }
+        .info-text-box { flex: 1; }
+        .info-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
+        .info-value { font-size: 13px; font-weight: 600; color: var(--blue-dark); }
+        .info-empty { color: #94A3B8; font-style: italic; font-weight: 400; }
+
+        /* --- FORM EDIT VIEW --- */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--blue-dark); margin-bottom: 6px; }
         .form-group label i { color: var(--blue-light); font-size: 16px; }
@@ -147,6 +178,7 @@
             box-shadow: 0 4px 15px rgba(30,58,138,0.2); margin-top: 10px; transition: 0.2s;
         }
         .btn-save:active { transform: scale(0.97); }
+        
         .btn-logout {
             background: #FEE2E2; color: #DC2626; width: 100%; border: none;
             padding: 14px; border-radius: 30px; font-weight: 600; font-size: 14px;
@@ -154,6 +186,8 @@
             margin-top: 15px; transition: 0.2s;
         }
         .btn-logout:active { transform: scale(0.97); }
+
+        .hide-section { display: none !important; }
 
     </style>
 </head>
@@ -172,7 +206,20 @@
             <div style="width: 24px;"></div>
         </header>
 
-        <div class="content">
+        <!-- ============================================== -->
+        <!-- SKELETON VIEW (Tampil saat memuat data) -->
+        <!-- ============================================== -->
+        <div id="skeleton-view" class="content">
+            <div class="profile-card skeleton-box" style="height: 250px;"></div>
+            <div class="stats-card skeleton-box" style="height: 80px;"></div>
+            <div class="chart-card skeleton-box" style="height: 250px;"></div>
+            <div class="form-card skeleton-box" style="height: 300px;"></div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- REAL CONTENT (Sembunyi sebelum data siap) -->
+        <!-- ============================================== -->
+        <div id="real-content" class="content hide-section">
             
             <!-- PROFILE HERO CARD -->
             <div class="profile-card">
@@ -206,7 +253,7 @@
                     <span class="stat-label">Skor Genius</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-num" id="stat-days">0</span>
+                    <span class="stat-num" id="stat-days">1</span>
                     <span class="stat-label">Hari Aktif</span>
                 </div>
             </div>
@@ -214,7 +261,7 @@
             <!-- CHART CARD -->
             <div class="chart-card">
                 <div class="card-title">
-                    <i class="ph-fill ph-chart-line-up"></i> Riwayat Produktivitas
+                    <div class="card-title-left"><i class="ph-fill ph-chart-line-up"></i> Riwayat Produktivitas</div>
                 </div>
                 <div class="chart-header">
                     <div>
@@ -222,7 +269,7 @@
                             0.00 <span>Skor Terkini</span>
                         </div>
                         <div style="font-size:10px; color:var(--text-muted); margin-top:2px;" id="chart-last-date">
-                            Belum ada aktivitas
+                            Memuat grafik dari kalender...
                         </div>
                     </div>
                     <div class="chart-trend trend-same" id="chart-trend-badge">
@@ -234,14 +281,61 @@
                 </div>
             </div>
 
-            <!-- FORM CARD -->
+            <!-- PERSONAL INFO CARD (VIEW & EDIT MODE) -->
             <div class="form-card">
                 <div class="card-title">
-                    <i class="ph-fill ph-pencil-simple"></i> Edit Informasi Pribadi
+                    <div class="card-title-left"><i class="ph-fill ph-identification-card"></i> Informasi Pribadi</div>
+                    <!-- Tombol Pensil -->
+                    <button class="btn-edit-mode" id="btn-toggle-edit" title="Edit Profil">
+                        <i class="ph-bold ph-pencil-simple"></i>
+                    </button>
                 </div>
-                <form id="profile-form">
+
+                <!-- MODE BACA (VIEW) -->
+                <div id="profile-view-mode">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ph-fill ph-user"></i></div>
+                            <div class="info-text-box">
+                                <div class="info-label">Nama Lengkap</div>
+                                <div class="info-value" id="view-name">Memuat...</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ph-fill ph-whatsapp-logo"></i></div>
+                            <div class="info-text-box">
+                                <div class="info-label">WhatsApp / HP</div>
+                                <div class="info-value" id="view-hp"><span class="info-empty">Belum diatur</span></div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ph-fill ph-cake"></i></div>
+                            <div class="info-text-box">
+                                <div class="info-label">Tanggal Lahir</div>
+                                <div class="info-value" id="view-dob"><span class="info-empty">Belum diatur</span></div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ph-fill ph-map-pin"></i></div>
+                            <div class="info-text-box">
+                                <div class="info-label">Kota Domisili</div>
+                                <div class="info-value" id="view-addr"><span class="info-empty">Belum diatur</span></div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ph-fill ph-quotes"></i></div>
+                            <div class="info-text-box">
+                                <div class="info-label">Bio Singkat</div>
+                                <div class="info-value" id="view-bio"><span class="info-empty">Belum diatur</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODE EDIT (FORM) -->
+                <form id="profile-edit-mode" class="hide-section">
                     <div class="form-group">
-                        <label><i class="ph-fill ph-identification-card"></i> Nama Lengkap</label>
+                        <label><i class="ph-fill ph-user"></i> Nama Lengkap</label>
                         <input type="text" id="inp-name" class="form-input" required>
                     </div>
                     <div class="form-group">
@@ -258,11 +352,15 @@
                     </div>
                     <div class="form-group">
                         <label><i class="ph-fill ph-quotes"></i> Bio Singkat</label>
-                        <textarea id="inp-bio" class="form-input" placeholder="Tulis sesuatu tentang prestasimu..." rows="3" style="resize:vertical;"></textarea>
+                        <textarea id="inp-bio" class="form-input" placeholder="Tulis sesuatu tentang dirimu..." rows="2" style="resize:vertical;"></textarea>
                     </div>
 
                     <button type="submit" class="btn-save" id="btn-save">
-                        <i class="ph-bold ph-floppy-disk"></i> Simpan Profil
+                        <i class="ph-bold ph-floppy-disk"></i> Simpan Perubahan
+                    </button>
+                    <!-- Tombol Batal Edit -->
+                    <button type="button" class="btn-logout" id="btn-cancel-edit" style="background:#F1F5F9; color:#64748B;">
+                        Batal
                     </button>
                 </form>
                 
@@ -281,9 +379,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, limit, setDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase (Sesuai dengan index.html)
+        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -299,146 +397,163 @@
 
         let currentUser = null;
         let scoreChart = null;
-        let unsubHistory = null;
-        let unsubUserDoc = null;
+
+        // UI Wrapper
+        const skeletonView = document.getElementById('skeleton-view');
+        const realContent = document.getElementById('real-content');
+
+        // Mode Edit & View
+        const viewMode = document.getElementById('profile-view-mode');
+        const editMode = document.getElementById('profile-edit-mode');
+        const btnToggleEdit = document.getElementById('btn-toggle-edit');
+        const btnCancelEdit = document.getElementById('btn-cancel-edit');
+        const btnLogout = document.getElementById('btn-logout');
+
+        // TOGGLE VIEW / EDIT MODE
+        btnToggleEdit.addEventListener('click', () => {
+            viewMode.classList.add('hide-section');
+            btnLogout.classList.add('hide-section'); // Sembunyikan logout saat edit
+            editMode.classList.remove('hide-section');
+            btnToggleEdit.style.display = 'none'; // Sembunyikan ikon pensil
+        });
+
+        btnCancelEdit.addEventListener('click', () => {
+            editMode.classList.add('hide-section');
+            viewMode.classList.remove('hide-section');
+            btnLogout.classList.remove('hide-section');
+            btnToggleEdit.style.display = 'flex'; // Munculkan pensil lagi
+        });
 
         // ==========================================
         // 1. CEK AUTENTIKASI
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const userRef = doc(db, 'users', user.uid);
-                const snap = await getDoc(userRef);
-                if (snap.exists()) {
-                    currentUser = { uid: user.uid, ...snap.data() };
-                    renderProfile(currentUser);
-                    listenScoreHistory(currentUser.uid);
-                    listenUserDoc(currentUser.uid);
-                }
+                // Dengarkan perubahan dokumen profil realtime
+                onSnapshot(doc(db, 'users', user.uid), (snap) => {
+                    if (snap.exists()) {
+                        currentUser = { uid: user.uid, ...snap.data() };
+                        renderProfile(currentUser);
+                    }
+                });
+
+                // Tarik riwayat Tugas (Home Work) untuk Grafik Realtime
+                generateDynamicChart(user.uid);
+                
             } else {
                 window.location.href = 'login.html';
             }
         });
 
         // ==========================================
-        // 2. LOGOUT FUNCTION
-        // ==========================================
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            Swal.fire({
-                title: 'Keluar Akun?',
-                text: "Anda harus login kembali untuk mengakses aplikasi.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#DC2626',
-                cancelButtonColor: '#64748B',
-                confirmButtonText: 'Ya, Keluar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    signOut(auth).then(() => {
-                        window.location.href = 'index.html';
-                    });
-                }
-            });
-        });
-
-        // ==========================================
-        // 3. RENDER DATA KE UI
+        // 2. RENDER DATA KE UI (VIEW & FORM)
         // ==========================================
         function renderProfile(user) {
             const name = user.name || 'Pengguna Genius';
             document.getElementById('display-name').innerText = name;
             document.getElementById('display-email').innerText = user.email || '';
 
-            updateScoreDisplay(user);
+            // Update Counter atas
+            const score = parseFloat(user.score || 0);
+            const tasksDone = user.tasksDone || 0;
+            document.getElementById('display-tasks').innerText = `${tasksDone} Tugas`;
+            document.getElementById('display-score').innerText = `Skor: ${score.toFixed(2)}`;
+            document.getElementById('stat-tasks').innerText = tasksDone;
+            document.getElementById('stat-score-val').innerText = score.toFixed(2);
+            document.getElementById('chart-current-score').innerHTML = `${score.toFixed(2)} <span>Skor Terkini</span>`;
 
-            // Hitung Hari Aktif
+            // HITUNG HARI AKTIF REAL (Berdasarkan createdAt)
             let hariAktif = 1;
-            const createdField = user.createdAt;
-            if (createdField) {
-                const createdDate = new Date(createdField);
+            if (user.createdAt) {
+                const createdDate = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
                 const diffTime = Math.abs(new Date() - createdDate);
-                hariAktif = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))); 
+                hariAktif = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 agar hari pertama dihitung 1
             }
             document.getElementById('stat-days').innerText = hariAktif;
 
-            // Foto Profil
+            // FOTO PROFIL
             if (user.photoURL) {
                 document.getElementById('display-pic').src = user.photoURL;
             } else {
                 document.getElementById('display-pic').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3B82F6&color=fff&size=200`;
             }
 
-            // Isi Form Edit
-            document.getElementById('inp-name').value = user.name || '';
+            // ISI TEKS MODE BACA (VIEW)
+            document.getElementById('view-name').innerText = name;
+            
+            const formatView = (val) => val && val.trim() !== "" ? val : '<span class="info-empty">Belum diatur</span>';
+            document.getElementById('view-hp').innerHTML = formatView(user.noHp);
+            document.getElementById('view-dob').innerHTML = formatView(user.tanggalLahir);
+            document.getElementById('view-addr').innerHTML = formatView(user.alamat);
+            document.getElementById('view-bio').innerHTML = formatView(user.bioSingkat);
+
+            // ISI VALUE FORM EDIT
+            document.getElementById('inp-name').value = name;
             document.getElementById('inp-hp').value = user.noHp || '';
             document.getElementById('inp-dob').value = user.tanggalLahir || '';
             document.getElementById('inp-addr').value = user.alamat || '';
             document.getElementById('inp-bio').value = user.bioSingkat || '';
-        }
 
-        function updateScoreDisplay(user) {
-            const score = parseFloat(user.score || 0);
-            const tasksDone = user.tasksDone || 0;
-
-            document.getElementById('display-tasks').innerText = `${tasksDone} Tugas`;
-            document.getElementById('display-score').innerText = `Skor: ${score.toFixed(2)}`;
-            document.getElementById('stat-tasks').innerText = tasksDone;
-            document.getElementById('stat-score-val').innerText = score.toFixed(2);
-            document.getElementById('chart-current-score').innerHTML = `${score.toFixed(2)} <span>Skor Terkini</span>`;
+            // HILANGKAN SKELETON
+            skeletonView.classList.add('hide-section');
+            realContent.classList.remove('hide-section');
         }
 
         // ==========================================
-        // 4. LISTENER REALTIME FIREBASE
+        // 3. GENERATE GRAFIK DARI DATA HOME WORK
         // ==========================================
-        function listenUserDoc(uid) {
-            if (unsubUserDoc) unsubUserDoc();
-            unsubUserDoc = onSnapshot(doc(db, 'users', uid), (snap) => {
-                if (!snap.exists()) return;
-                currentUser = { uid, ...snap.data() };
-                updateScoreDisplay(currentUser);
-            });
-        }
-
-        function listenScoreHistory(uid) {
-            if (unsubHistory) unsubHistory(); 
-            const q = query(collection(db, 'users', uid, 'scoreHistory'), orderBy('dateKey', 'asc'), limit(14)); // Ambil 14 hari terakhir
-
-            unsubHistory = onSnapshot(q, (snap) => {
-                let historyData = [];
-                snap.forEach(d => historyData.push(d.data()));
-
-                // Jika data kosong, buat data default datar agar chart tidak blank
-                if (historyData.length === 0 && currentUser) {
-                    const scoreNow = parseFloat(currentUser.score || 0);
-                    const today = new Date();
-                    for (let i = 4; i >= 0; i--) {
-                        const d = new Date(today);
-                        d.setDate(d.getDate() - i);
-                        historyData.push({ 
-                            date: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }), 
-                            score: scoreNow 
-                        });
+        async function generateDynamicChart(uid) {
+            // Ambil semua tugas yang sudah "completed" untuk menghitung skor per hari
+            const q = query(collection(db, "users", uid, "tasks"), where("status", "==", "completed"), orderBy("completedAt", "asc"));
+            
+            onSnapshot(q, (snapshot) => {
+                let taskHistory = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.completedAt) {
+                        const dateObj = data.completedAt.toDate ? data.completedAt.toDate() : new Date(data.completedAt);
+                        // Format ke YYYY-MM-DD untuk grouping
+                        const dateKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+                        taskHistory.push(dateKey);
                     }
+                });
+
+                // Buat rentang 7 hari terakhir
+                let chartData = [];
+                let runningScore = 0;
+                const today = new Date();
+                
+                // Urutkan 7 hari ke belakang
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const iterDateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                    const label = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+
+                    // Hitung berapa tugas yang diselesaikan pada iterDateKey ini
+                    const tasksOnThisDay = taskHistory.filter(date => date === iterDateKey).length;
+                    
+                    // Asumsi 1 tugas = 0.25 poin. Tambahkan ke running score
+                    runningScore += (tasksOnThisDay * 0.25);
+
+                    chartData.push({ date: label, score: runningScore });
                 }
-                renderChart(historyData);
+
+                renderChart(chartData);
             });
         }
 
-        // ==========================================
-        // 5. RENDER GRAFIK CHART.JS
-        // ==========================================
         function renderChart(data) {
-            const labels = data.map(d => d.date || '');
-            const values = data.map(d => parseFloat(d.score || d.ips || 0));
+            const labels = data.map(d => d.date);
+            const values = data.map(d => d.score);
 
-            // Logika Tren Naik/Turun
             const trendBadge = document.getElementById('chart-trend-badge');
             if (values.length >= 2) {
                 const diff = values[values.length - 1] - values[values.length - 2];
-                if (diff > 0.05) {
+                if (diff > 0) {
                     trendBadge.className = 'chart-trend trend-up';
                     trendBadge.innerHTML = '<i class="ph-bold ph-trend-up"></i> Naik';
-                } else if (diff < -0.05) {
+                } else if (diff < 0) {
                     trendBadge.className = 'chart-trend trend-down';
                     trendBadge.innerHTML = '<i class="ph-bold ph-trend-down"></i> Turun';
                 } else {
@@ -447,13 +562,11 @@
                 }
             }
 
-            if (labels.length > 0) {
-                document.getElementById('chart-last-date').innerText = 'Pembaruan terakhir: ' + labels[labels.length - 1];
-            }
+            document.getElementById('chart-last-date').innerText = 'Grafik 7 Hari Terakhir';
 
             const ctx = document.getElementById('scoreChart').getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 160);
-            gradient.addColorStop(0, 'rgba(59,130,246,0.3)');
+            gradient.addColorStop(0, 'rgba(59,130,246,0.4)');
             gradient.addColorStop(1, 'rgba(59,130,246,0.01)');
 
             if (scoreChart) scoreChart.destroy();
@@ -463,80 +576,32 @@
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Skor Genius',
+                        label: 'Skor',
                         data: values,
                         fill: true,
                         backgroundColor: gradient,
                         borderColor: '#3B82F6',
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#3B82F6',
-                        pointBorderColor: '#fff',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#3B82F6',
                         pointBorderWidth: 2,
                         pointRadius: 4,
-                        tension: 0.4
+                        tension: 0.3
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 9 }, color: '#94A3B8' } },
-                        y: { min: 0, max: 4, grid: { color: '#E2E8F0', drawBorder: false }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#94A3B8', stepSize: 1 } }
+                        x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#94A3B8' } },
+                        y: { beginAtZero: true, suggestedMax: Math.max(...values) + 1, grid: { color: '#F1F5F9', drawBorder: false }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#94A3B8', stepSize: 1 } }
                     }
                 }
             });
         }
 
         // ==========================================
-        // 6. UPLOAD FOTO & KOMPRESI BASE64
-        // ==========================================
-        window.uploadFotoBase64 = () => {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            const btn = document.getElementById('btn-cam');
-            
-            if (!file) return;
-
-            btn.classList.add('loading');
-            btn.innerHTML = '<i class="ph-bold ph-spinner"></i>';
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 300; // Kompresi kuat agar ringan
-                    const scaleSize = MAX_WIDTH / img.width;
-                    
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-
-                    updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
-                    .then(() => {
-                        document.getElementById('display-pic').src = compressedBase64;
-                        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Foto profil diperbarui.', confirmButtonColor: '#3B82F6', timer: 1500 });
-                    })
-                    .catch(err => {
-                        Swal.fire('Error', 'Gagal menyimpan foto: ' + err.message, 'error');
-                    })
-                    .finally(() => {
-                        btn.classList.remove('loading');
-                        btn.innerHTML = '<i class="ph-fill ph-camera"></i>';
-                        fileInput.value = "";
-                    });
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // ==========================================
-        // 7. SIMPAN PROFIL FORM
+        // 4. SIMPAN PROFIL FORM
         // ==========================================
         document.getElementById('profile-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -555,13 +620,18 @@
 
             try {
                 await updateDoc(doc(db, 'users', currentUser.uid), payload);
-                document.getElementById('display-name').innerText = payload.name;
-
+                
                 Swal.fire({
                     icon: 'success', title: 'Tersimpan!',
                     text: 'Data profil berhasil diperbarui.',
-                    confirmButtonColor: '#3B82F6', timer: 2000, showConfirmButton: false
+                    confirmButtonColor: '#3B82F6', timer: 1500, showConfirmButton: false
                 });
+
+                // Kembali ke mode VIEW setelah simpan
+                setTimeout(() => {
+                    btnCancelEdit.click();
+                }, 500);
+
             } catch (err) {
                 Swal.fire('Error', err.message, 'error');
             } finally {
@@ -569,6 +639,71 @@
                 btn.disabled = false;
             }
         };
+
+        // ==========================================
+        // 5. UPLOAD FOTO (BASE64)
+        // ==========================================
+        window.uploadFotoBase64 = () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const btn = document.getElementById('btn-cam');
+            
+            if (!file) return;
+
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="ph-bold ph-spinner"></i>';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+                    updateDoc(doc(db, "users", currentUser.uid), { photoURL: compressedBase64 })
+                    .then(() => {
+                        document.getElementById('display-pic').src = compressedBase64;
+                    })
+                    .finally(() => {
+                        btn.classList.remove('loading');
+                        btn.innerHTML = '<i class="ph-fill ph-camera"></i>';
+                        fileInput.value = "";
+                    });
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // ==========================================
+        // 6. LOGOUT FUNCTION
+        // ==========================================
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Keluar Akun?',
+                text: "Anda harus login kembali untuk mengakses aplikasi.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Ya, Keluar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    signOut(auth).then(() => {
+                        window.location.href = 'index.html';
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
