@@ -163,31 +163,32 @@
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
         .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
-        /* ── EXIT MODAL ── */
+        /* ── EXIT MODAL (DIPERBAIKI) ── */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px);
-            display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease;
-            padding: 20px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            display: none; justify-content: center; align-items: center; z-index: 9999; 
+            opacity: 0; transition: opacity 0.3s ease; padding: 20px; box-sizing: border-box;
         }
         .modal-overlay.active { display: flex; opacity: 1; }
 
         .modal-box {
-            background: rgba(255, 255, 255, 0.98); padding: 24px 20px 28px; border-radius: 20px;
-            width: 100%; max-width: 340px; text-align: center; box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
-            transform: translateY(20px); transition: transform 0.28s ease; border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 1); padding: 24px 20px 28px; border-radius: 20px;
+            width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px); transition: transform 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.4);
         }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        .modal-icon { font-size: 2.4rem; margin-bottom: 12px; color: var(--blue-dark); }
-        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .modal-icon { font-size: 2.8rem; margin-bottom: 12px; color: var(--blue-dark); }
+        .modal-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
         .modal-text { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
 
-        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
         .modal-btn { padding: 12px; border-radius: 12px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
         
         .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
         .modal-btn-delete { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .modal-btn-cancel { background: rgba(203, 213, 225, 0.3); color: #475569; }
+        .modal-btn-cancel { background: var(--surface); color: var(--text-muted); border: 1px solid #CBD5E1; }
 
         .modal-btn:active { transform: scale(0.97); }
 
@@ -222,7 +223,7 @@
         <!-- INPUT FORM -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
-                <textarea id="chat-input" class="input-box" placeholder="Ketik instruksi atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
+                <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
             </div>
             <button type="submit" class="btn-send" id="btn-send" disabled>
                 <i class="ph-fill ph-paper-plane-right"></i>
@@ -230,15 +231,15 @@
         </form>
     </div>
 
-    <!-- EXIT MODAL -->
+    <!-- EXIT MODAL (DIPERBAIKI) -->
     <div id="exit-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-icon"><i class="ph-duotone ph-sign-out"></i></div>
             <div class="modal-title">Keluar dari Chat?</div>
-            <div class="modal-text">Kamu bisa menyimpan percakapan ini atau menghapusnya. <b>Tugas yang sudah di-/add akan tetap aman!</b></div>
+            <div class="modal-text">Kamu bisa menyimpan percakapan ini atau menghapusnya. <br><b>Tugas yang di-/add akan tetap aman!</b></div>
             <div class="modal-btns">
-                <button class="modal-btn modal-btn-save" id="btn-save-exit">Simpan & Kembali ke Dasbor</button>
-                <button class="modal-btn modal-btn-delete" id="btn-delete-exit">Hapus Riwayat Chat & Keluar</button>
+                <button class="modal-btn modal-btn-save" id="btn-save-exit">Simpan & Kembali</button>
+                <button class="modal-btn modal-btn-delete" id="btn-delete-exit">Hapus Riwayat & Keluar</button>
                 <button class="modal-btn modal-btn-cancel" id="btn-cancel-exit">Batal</button>
             </div>
         </div>
@@ -308,7 +309,6 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
-            // PEMBERSIH: Hapus teks proses berpikir bawaan model Qwen
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -350,7 +350,7 @@
                     });
 
                     if (snapshot.empty && isFetchingFirstTime) {
-                        renderBubble('bot', "Halo! Aku Genius AI.\nKetik **/add [detail tugas]** untuk mengekstrak dan menjadwalkannya otomatis! 🗓️", Date.now());
+                        renderBubble('bot', "Halo! Aku Genius AI.\nKetik **/add [tugas] deadline tanggal [X] [Bulan]** untuk mengekstrak dan menjadwalkannya otomatis! 🗓️", Date.now());
                     }
 
                     isFetchingFirstTime = false;
@@ -364,39 +364,76 @@
             }
         });
 
-        // ── FUNGSI PERAPI TEKS TUGAS SECARA PINTAR ──
+        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SPESIFIK ──
         function formatTaskInput(rawText) {
             let text = rawText.substring(4).trim(); // Buang kata '/add'
             
-            // 1. Deteksi Tanggal Sederhana
-            let daysToAdd = 1; // Default: Besok
+            // 1. Logika Tanggal Cerdas
+            let targetDate = new Date();
             let timeStr = "Belum disetel";
-            
-            if (text.toLowerCase().includes('hari ini')) daysToAdd = 0;
-            if (text.toLowerCase().includes('lusa')) daysToAdd = 2;
-            if (text.toLowerCase().includes('minggu depan')) daysToAdd = 7;
+            let dateFound = false;
 
-            // 2. Tentukan Tanggal Fix
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + daysToAdd);
+            const lowerText = text.toLowerCase();
+
+            // Cek kata kunci hari biasa
+            if (lowerText.includes('hari ini')) {
+                dateFound = true;
+            } else if (lowerText.includes('besok')) {
+                targetDate.setDate(targetDate.getDate() + 1);
+                dateFound = true;
+            } else if (lowerText.includes('lusa')) {
+                targetDate.setDate(targetDate.getDate() + 2);
+                dateFound = true;
+            } else if (lowerText.includes('minggu depan')) {
+                targetDate.setDate(targetDate.getDate() + 7);
+                dateFound = true;
+            } else {
+                // REGEX SAKTI: Cek format "tanggal 25 agustus" atau "tgl 25"
+                const dateRegex = /(?:tanggal|tgl|deadline)\s+(\d{1,2})(?:\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|jun|jul|agu|sep|okt|nov|des))?(?:\s+(\d{4}))?/i;
+                const match = text.match(dateRegex);
+
+                if (match) {
+                    const day = parseInt(match[1]);
+                    let month = targetDate.getMonth(); // Set default ke bulan saat ini
+                    let year = targetDate.getFullYear(); // Set default ke tahun saat ini
+
+                    if (match[2]) {
+                        const monthNames = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+                        const monthStr = match[2].toLowerCase().substring(0, 3);
+                        const foundMonth = monthNames.indexOf(monthStr);
+                        if (foundMonth !== -1) month = foundMonth;
+                    }
+
+                    if (match[3]) {
+                        year = parseInt(match[3]);
+                    }
+
+                    targetDate = new Date(year, month, day);
+                    dateFound = true;
+                }
+            }
+
+            // Jika sama sekali tidak ada kata penunjuk waktu, otomatis jadikan Besok
+            if (!dateFound) {
+                targetDate.setDate(targetDate.getDate() + 1);
+            }
+
             const yyyy = targetDate.getFullYear();
             const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
             const dd = String(targetDate.getDate()).padStart(2, '0');
             const dateKey = `${yyyy}-${mm}-${dd}`;
 
-            // 3. Ekstrak Judul secara Cerdas (Mencari kata setelah "tugas" atau "pr")
+            // 2. Ekstrak Judul Tugas Cerdas
             let title = "Tugas Baru";
-            const subjectMatch = text.match(/(?:tugas|pr|project)\s+([a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)?)/i);
+            const subjectMatch = text.match(/(?:tugas|pr|project|laporan|makalah)\s+([a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)?)/i);
             
             if (subjectMatch && subjectMatch[1]) {
-                // Huruf kapital di setiap awal kata judul
                 title = "Tugas " + subjectMatch[1].split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
             } else {
-                // Jika tidak terdeteksi, ambil 2 kata pertama
                 title = "Tugas: " + text.split(' ').slice(0, 2).join(' ') + "...";
             }
 
-            // 4. Instruksi dirapikan (Huruf kapital di awal)
+            // 3. Instruksi utuh
             let instruction = text.charAt(0).toUpperCase() + text.slice(1) + ".";
 
             return { title, instruction, dateKey, time: timeStr };
@@ -416,18 +453,17 @@
             const chatRef = collection(db, "users", currentUser.uid, "chats");
             await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
 
-            // LOGIKA PENAMBAHAN TUGAS OTOMATIS (YANG SUDAH DIRAPIKAN)
+            // LOGIKA PENAMBAHAN TUGAS OTOMATIS (DENGAN PENGECEK TANGGAL SPESIFIK)
             if (text.toLowerCase().startsWith('/add')) {
-                // Panggil fungsi perapi teks
                 const taskData = formatTaskInput(text);
 
                 const taskRef = collection(db, "users", currentUser.uid, "tasks");
                 await addDoc(taskRef, {
-                    title: taskData.title, // Judul rapi (Misal: "Tugas Matematika")
-                    instruction: taskData.instruction, // Instruksi utuh dan rapi
-                    dateKey: taskData.dateKey, // Tanggal masuk ke Kalender
+                    title: taskData.title,
+                    instruction: taskData.instruction,
+                    dateKey: taskData.dateKey, // Tanggal akan tepat sesuai yang diketik pengguna
                     time: taskData.time, 
-                    status: "pending", // Masuk ke Home Work
+                    status: "pending", 
                     createdAt: serverTimestamp()
                 });
             }
@@ -462,7 +498,7 @@
             }
         });
 
-        // ── LOGIKA MODAL EXIT & DELETE (BEBAS BUG) ──
+        // ── LOGIKA MODAL EXIT & DELETE ──
         document.getElementById('btn-open-modal').addEventListener('click', () => {
             exitModal.classList.add('active');
             chatInput.blur();
@@ -476,12 +512,10 @@
             if (e.target === exitModal) exitModal.classList.remove('active');
         });
 
-        // TOMBOL: SIMPAN & KELUAR
         document.getElementById('btn-save-exit').addEventListener('click', () => {
             window.location.href = 'index.html';
         });
 
-        // TOMBOL: HAPUS CHAT & KELUAR
         document.getElementById('btn-delete-exit').addEventListener('click', async () => {
             if (!currentUser) return window.location.href = 'index.html';
 
@@ -490,7 +524,7 @@
             btnDel.disabled = true;
 
             try {
-                // Hanya menghapus isi koleksi 'chats', koleksi 'tasks' dijamin aman!
+                // Menghapus history chat tanpa mengganggu kalender/tasks
                 const q = query(collection(db, "users", currentUser.uid, "chats"));
                 const querySnapshot = await getDocs(q);
                 
