@@ -8,8 +8,6 @@
     <meta name="theme-color" content="#1E3A8A">
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Menggunakan Phosphor Icons (100% Gratis dan Open Source) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -41,7 +39,7 @@
             --border-radius: 20px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; text-decoration: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; text-decoration: none; -webkit-tap-highlight-color: transparent; }
 
         body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
 
@@ -51,11 +49,11 @@
             display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
-        /* HEADER APP */
+        /* HEADER APP (FIXED/STICKY) */
         header {
             background-color: var(--white); padding: 14px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
+            position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow-sm);
         }
 
         .brand { display: flex; align-items: center; gap: 10px; }
@@ -68,6 +66,21 @@
         .btn-outline { background-color: transparent; color: var(--blue-dark); border: 1.5px solid var(--blue-light); }
         .btn-primary { background: var(--blue-gradient); color: var(--white); box-shadow: var(--shadow-sm); border: none; }
         .btn-primary:active { transform: scale(0.95); }
+
+        /* --- SKELETON SHIMMER EFFECT --- */
+        .skeleton-box {
+            position: relative; overflow: hidden; background-color: #CBD5E1; border-radius: 8px;
+        }
+        .skeleton-box::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.6) 20%, rgba(255,255,255, 0) 40%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        .skeleton-dark { background-color: rgba(255, 255, 255, 0.2); }
+        .skeleton-dark::after { background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.2) 20%, rgba(255,255,255, 0) 40%); }
 
         /* DASHBOARD HERO SECTION */
         .dashboard-hero {
@@ -86,7 +99,6 @@
             background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 10px 15px; border-radius: 12px; font-size: 12px; font-weight: 500;
             display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px);
-            display: none; /* Sembunyikan default jika tidak ada tugas */
         }
         .task-alert i { font-size: 18px; color: #FCD34D; }
 
@@ -148,7 +160,7 @@
     <!-- WRAPPER MOBILE -->
     <div class="mobile-wrapper">
         
-        <!-- HEADER -->
+        <!-- HEADER (FIXED/STICKY) -->
         <header>
             <div class="brand">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Logo">
@@ -157,12 +169,55 @@
                     <span>Home Work</span>
                 </div>
             </div>
+            <!-- Auth Buttons Skeleton -->
             <div class="auth-buttons" id="auth-container">
-                <div style="font-size:11px; color:var(--text-muted);">Memuat...</div>
+                <div class="skeleton-box" style="width: 70px; height: 32px; border-radius: 30px;"></div>
             </div>
         </header>
 
-        <main style="flex:1; display:flex; flex-direction:column;">
+        <!-- ============================================== -->
+        <!-- VIEW 1: SKELETON LOADING (Tampil Saat Memuat) -->
+        <!-- ============================================== -->
+        <main id="main-skeleton" style="flex:1; display:flex; flex-direction:column;">
+            <!-- Hero Skeleton -->
+            <section class="dashboard-hero">
+                <div class="dash-header">
+                    <div class="skeleton-box skeleton-dark" style="width: 55px; height: 55px; border-radius: 16px;"></div>
+                    <div style="flex:1;">
+                        <div class="skeleton-box skeleton-dark" style="height: 20px; width: 60%; margin-bottom: 6px;"></div>
+                        <div class="skeleton-box skeleton-dark" style="height: 12px; width: 40%;"></div>
+                    </div>
+                </div>
+                <div class="skeleton-box skeleton-dark" style="height: 38px; width: 100%; border-radius: 12px;"></div>
+            </section>
+
+            <!-- Chat Widget Skeleton -->
+            <section class="recent-chat-container">
+                <div class="recent-chat-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                        <div class="skeleton-box" style="height: 16px; width: 40%;"></div>
+                        <div class="skeleton-box" style="height: 12px; width: 20%;"></div>
+                    </div>
+                    <div class="skeleton-box" style="height: 50px; width: 100%; border-radius: 12px;"></div>
+                </div>
+            </section>
+
+            <!-- Menu Grid Skeleton -->
+            <section class="menu-section">
+                <div class="skeleton-box" style="height: 16px; width: 30%; margin-bottom: 15px;"></div>
+                <div class="menu-grid">
+                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============================================== -->
+        <!-- VIEW 2: KONTEN ASLI (Tampil Setelah Data Ditarik) -->
+        <!-- ============================================== -->
+        <main id="main-content" style="flex:1; display:none; flex-direction:column;">
             
             <!-- DASHBOARD HERO -->
             <section class="dashboard-hero">
@@ -194,33 +249,26 @@
                 </div>
             </section>
 
-            <!-- MENU UTAMA APLIKASI (Tombol Terhubung) -->
+            <!-- MENU UTAMA APLIKASI -->
             <section class="menu-section">
                 <div class="menu-title">Menu Utama</div>
                 
                 <div class="menu-grid">
-                    <!-- Tombol 1: Terhubung ke asisten-ai.html -->
                     <a href="asisten-ai.html" class="menu-card">
                         <div class="menu-icon"><i class="ph-fill ph-chat-teardrop-text"></i></div>
                         <h3>Asisten AI</h3>
                         <p>Chat pintar & jadwal otomatis.</p>
                     </a>
-                    
-                    <!-- Tombol 2: Terhubung ke kalender.html -->
                     <a href="kalender.html" class="menu-card">
                         <div class="menu-icon"><i class="ph-fill ph-calendar-check"></i></div>
                         <h3>Kalender</h3>
                         <p>Pantau deadline visual.</p>
                     </a>
-                    
-                    <!-- Tombol 3: Terhubung ke home-work.html -->
                     <a href="home-work.html" class="menu-card">
                         <div class="menu-icon"><i class="ph-fill ph-books"></i></div>
                         <h3>Home Work</h3>
                         <p>Ruang kerja & bantuan AI.</p>
                     </a>
-                    
-                    <!-- Tombol 4: Terhubung ke finish.html -->
                     <a href="finish.html" class="menu-card">
                         <div class="menu-icon"><i class="ph-fill ph-archive-box"></i></div>
                         <h3>Finish System</h3>
@@ -228,20 +276,19 @@
                     </a>
                 </div>
             </section>
-
         </main>
 
-        <!-- FOOTER WEBSITE PROFESIONAL -->
+        <!-- FOOTER WEBSITE PROFESIONAL & FUNGSIONAL -->
         <footer>
             <div class="footer-brand">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
                 <span>GENIUS HOME WORK</span>
             </div>
             <div class="footer-links">
-                <a href="#">Beranda</a>
-                <a href="#">Kebijakan Privasi</a>
-                <a href="#">Syarat & Ketentuan</a>
-                <a href="#">Bantuan</a>
+                <a href="index.html">Beranda</a>
+                <a href="home-work.html">Ruang Tugas</a>
+                <a href="kalender.html">Jadwal</a>
+                <a href="asisten-ai.html">Pusat Bantuan AI</a>
             </div>
             <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
         </footer>
@@ -287,6 +334,16 @@
         const taskAlert = document.getElementById('task-alert');
         const taskAlertText = document.getElementById('task-alert-text');
         const recentChatBubble = document.getElementById('recent-chat-bubble');
+        
+        // Element Wrapper untuk Skeleton dan Content
+        const skeletonView = document.getElementById('main-skeleton');
+        const contentView = document.getElementById('main-content');
+
+        // Fungsi Switch Layar dari Skeleton ke Real Content
+        function hideSkeleton() {
+            skeletonView.style.display = 'none';
+            contentView.style.display = 'flex';
+        }
 
         // 3. LOGIKA TARIK DATA ASLI
         onAuthStateChanged(auth, async (user) => {
@@ -308,7 +365,6 @@
                     }
 
                     // B. HITUNG JUMLAH TUGAS PENDING ASLI DARI DATABASE
-                    // Mengambil data dari subcollection 'tasks' milik user yang statusnya 'pending'
                     const qTasks = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
                     const taskSnap = await getDocs(qTasks);
                     
@@ -317,11 +373,10 @@
                         taskAlertText.innerHTML = `Kamu memiliki <b>${taskCount} tugas</b> tertunda hari ini.`;
                         taskAlert.style.display = 'flex';
                     } else {
-                        taskAlert.style.display = 'none'; // Sembunyikan notif jika 0 tugas
+                        taskAlert.style.display = 'none';
                     }
 
                     // C. AMBIL RIWAYAT CHAT ASLI TERAKHIR DARI DATABASE
-                    // Mengambil 1 dokumen chat terakhir dari subcollection 'chats' milik user
                     const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc"), limit(1));
                     const chatSnap = await getDocs(qChat);
                     
@@ -338,6 +393,9 @@
                     userGreeting.innerText = `Halo, Pengguna!`;
                     taskAlert.style.display = 'none';
                     recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada riwayat obrolan.</p>`;
+                } finally {
+                    // Sembunyikan Skeleton Loading setelah semua data selesai ditarik
+                    hideSkeleton();
                 }
 
             } else {
@@ -351,6 +409,9 @@
                 // Pastikan disembunyikan / dikosongkan jika user tamu
                 taskAlert.style.display = 'none';
                 recentChatBubble.innerHTML = `<p class="chat-empty">Silakan masuk untuk melihat riwayat obrolan AI Anda.</p>`;
+                
+                // Sembunyikan Skeleton Loading untuk Guest
+                hideSkeleton();
             }
         });
     </script>
