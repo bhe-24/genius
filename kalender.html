@@ -48,6 +48,18 @@
         .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
         .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; }
 
+        /* --- SKELETON SHIMMER EFFECT --- */
+        .skeleton-box {
+            position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px;
+        }
+        .skeleton-box::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.8) 20%, rgba(255,255,255, 0) 40%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
         /* CALENDAR SECTION */
         .calendar-section {
             background-color: var(--white);
@@ -84,7 +96,7 @@
         /* DOT INDICATOR (Tugas) */
         .task-dots { display: flex; gap: 3px; position: absolute; bottom: 5px; }
         .dot { width: 5px; height: 5px; background-color: #F59E0B; border-radius: 50%; }
-        .day-cell.selected .dot { background-color: var(--white); } /* Ubah putih jika sel aktif */
+        .day-cell.selected .dot { background-color: var(--white); }
 
         /* TASKS LIST SECTION */
         .task-section { flex: 1; padding: 20px; overflow-y: auto; background-color: var(--bg-app); }
@@ -96,7 +108,7 @@
         .task-card {
             background-color: var(--white); border-radius: 16px; padding: 16px;
             display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-sm);
-            border: 1px solid #E2E8F0; cursor: pointer; transition: 0.2s;
+            border: 1px solid #E2E8F0; cursor: pointer; transition: 0.2s; text-decoration: none;
         }
         .task-card:active { transform: scale(0.97); }
 
@@ -134,36 +146,76 @@
             <div style="width: 24px;"></div>
         </header>
 
-        <!-- CALENDAR -->
-        <div class="calendar-section">
-            <div class="calendar-header">
-                <button id="prev-month"><i class="ph-bold ph-caret-left"></i></button>
-                <h2 id="month-year-display">Memuat...</h2>
-                <button id="next-month"><i class="ph-bold ph-caret-right"></i></button>
-            </div>
-            
-            <div class="weekdays">
-                <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
-            </div>
-            
-            <div class="days-grid" id="calendar-days">
-                <!-- Sel akan dirender JS -->
-            </div>
-        </div>
-
-        <!-- TASK LIST -->
-        <div class="task-section">
-            <div class="task-section-header">
-                <span id="selected-date-text">Memuat jadwal...</span>
-            </div>
-            
-            <div class="task-list" id="task-list-container">
-                <div class="empty-state">
-                    <i class="ph-bold ph-spinner ph-spin"></i>
-                    <p>Menyinkronkan data dengan server...</p>
+        <!-- ============================================== -->
+        <!-- SKELETON VIEW (Tampil saat memuat data) -->
+        <!-- ============================================== -->
+        <main id="skeleton-view" style="flex:1; display:flex; flex-direction:column;">
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="skeleton-box" style="width: 30px; height: 30px; border-radius: 8px;"></div>
+                    <div class="skeleton-box" style="width: 120px; height: 20px; border-radius: 4px;"></div>
+                    <div class="skeleton-box" style="width: 30px; height: 30px; border-radius: 8px;"></div>
+                </div>
+                <div class="weekdays">
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                    <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
+                </div>
+                <div class="days-grid">
+                    <!-- 35 kotak skeleton (5 baris x 7 hari) -->
+                    <script>
+                        for(let i=0; i<35; i++){
+                            document.write('<div class="skeleton-box" style="aspect-ratio:1; border-radius:50%;"></div>');
+                        }
+                    </script>
                 </div>
             </div>
-        </div>
+            
+            <div class="task-section">
+                <div class="skeleton-box" style="width: 150px; height: 18px; margin-bottom: 15px;"></div>
+                <div class="task-list">
+                    <div class="skeleton-box" style="height: 80px; border-radius: 16px;"></div>
+                    <div class="skeleton-box" style="height: 80px; border-radius: 16px;"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ============================================== -->
+        <!-- KONTEN ASLI (Tampil setelah data ditarik) -->
+        <!-- ============================================== -->
+        <main id="real-content" style="flex:1; display:none; flex-direction:column;">
+            <!-- CALENDAR -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <button id="prev-month"><i class="ph-bold ph-caret-left"></i></button>
+                    <h2 id="month-year-display">Memuat...</h2>
+                    <button id="next-month"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+                
+                <div class="weekdays">
+                    <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                </div>
+                
+                <div class="days-grid" id="calendar-days">
+                    <!-- Sel akan dirender JS -->
+                </div>
+            </div>
+
+            <!-- TASK LIST -->
+            <div class="task-section">
+                <div class="task-section-header">
+                    <span id="selected-date-text">Memilih jadwal...</span>
+                </div>
+                
+                <div class="task-list" id="task-list-container">
+                    <!-- Daftar tugas akan masuk ke sini -->
+                </div>
+            </div>
+        </main>
 
     </div>
 
@@ -186,6 +238,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // UI Wrapper
+        const skeletonView = document.getElementById('skeleton-view');
+        const realContent = document.getElementById('real-content');
+
         // DATA PENYIMPANAN TUGAS REAL DARI FIREBASE
         let realTasks = {}; 
         let currentUser = null;
@@ -201,13 +257,17 @@
         const taskListContainer = document.getElementById('task-list-container');
         const selectedDateText = document.getElementById('selected-date-text');
 
+        function hideSkeleton() {
+            skeletonView.style.display = 'none';
+            realContent.style.display = 'flex';
+        }
+
         // 1. PANTAU LOGIN USER & TARIK DATA TUGAS
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 listenToTasks(user.uid);
             } else {
-                // Jika belum login, kosongkan kalender dan minta login
                 realTasks = {};
                 renderCalendar();
                 taskListContainer.innerHTML = `
@@ -216,21 +276,19 @@
                         <p>Silakan masuk (login) terlebih dahulu untuk melihat kalender jadwalmu.</p>
                     </div>
                 `;
+                hideSkeleton();
             }
         });
 
         // 2. FUNGSI TARIK DATA TUGAS DARI FIRESTORE (REAL-TIME)
         function listenToTasks(uid) {
-            // Kita tarik tugas yang statusnya belum selesai (pending)
             const q = query(collection(db, "users", uid, "tasks"), where("status", "==", "pending"));
             
             onSnapshot(q, (snapshot) => {
-                realTasks = {}; // Reset agar tidak duplikat saat ada perubahan
+                realTasks = {}; 
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    // ASUMSI: Data di database punya field dateKey format "YYYY-MM-DD"
-                    // Contoh: { title: "Matematika", dateKey: "2026-08-18", time: "10:00" }
                     const dateKey = data.dateKey; 
                     
                     if (dateKey) {
@@ -241,11 +299,13 @@
 
                 renderCalendar();
                 
-                // Tampilkan tugas untuk tanggal yang saat ini sedang dipilih
                 const selYear = selectedDate.getFullYear();
                 const selMonth = String(selectedDate.getMonth() + 1).padStart(2, '0');
                 const selDay = String(selectedDate.getDate()).padStart(2, '0');
                 showTasksForDate(`${selYear}-${selMonth}-${selDay}`, selectedDate.getDate(), monthNames[selectedDate.getMonth()], selYear);
+                
+                // Menghilangkan skeleton loading setelah data berhasil dirender
+                hideSkeleton();
             });
         }
 
@@ -261,14 +321,12 @@
             const lastDay = new Date(year, month + 1, 0).getDate();
             const today = new Date();
 
-            // Render sel kosong
             for (let i = 0; i < firstDayIndex; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.classList.add('day-cell', 'empty');
                 calendarDays.appendChild(emptyCell);
             }
 
-            // Render tanggal asli
             for (let i = 1; i <= lastDay; i++) {
                 const dayCell = document.createElement('div');
                 dayCell.classList.add('day-cell');
@@ -284,7 +342,6 @@
                     dayCell.classList.add('selected');
                 }
 
-                // Cek apakah ada tugas nyata di Firebase pada tanggal ini
                 if (realTasks[dateString] && realTasks[dateString].length > 0) {
                     const dotsContainer = document.createElement('div');
                     dotsContainer.classList.add('task-dots');
@@ -318,10 +375,9 @@
             if (tasks && tasks.length > 0) {
                 tasks.forEach(task => {
                     const card = document.createElement('a');
-                    card.href = `home-work.html?id=${task.id}`; // Navigasi ke halaman detail tugas
+                    card.href = `home-work.html?id=${task.id}`; 
                     card.classList.add('task-card');
                     
-                    // Gunakan ikon default jika di database tidak diset
                     const iconClass = task.icon || "ph-file-text";
                     const timeText = task.time || "Sepanjang hari";
                     const titleText = task.title || "Tugas Tanpa Judul";
