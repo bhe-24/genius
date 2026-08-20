@@ -58,6 +58,18 @@
 
         .hidden-view { display: none !important; }
 
+        /* --- SKELETON SHIMMER EFFECT --- */
+        .skeleton-box {
+            position: relative; overflow: hidden; background-color: #E2E8F0; border-radius: 8px;
+        }
+        .skeleton-box::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.8) 20%, rgba(255,255,255, 0) 40%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
         /* --- LIST VIEW (DAFTAR KARTU) --- */
         #list-view .section-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; }
         
@@ -153,19 +165,29 @@
             <div style="width: 24px;"></div>
         </header>
 
-        <!-- VIEW 1: DAFTAR TUGAS -->
-        <div id="list-view" class="view-section">
+        <!-- ============================================== -->
+        <!-- SKELETON VIEW (Tampil saat memuat data) -->
+        <!-- ============================================== -->
+        <div id="skeleton-view" class="view-section">
+            <div class="skeleton-box" style="width: 180px; height: 18px; margin-bottom: 15px;"></div>
+            <div class="skeleton-box" style="height: 100px; border-radius: 16px; margin-bottom: 15px;"></div>
+            <div class="skeleton-box" style="height: 100px; border-radius: 16px; margin-bottom: 15px;"></div>
+            <div class="skeleton-box" style="height: 100px; border-radius: 16px; margin-bottom: 15px;"></div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 1: DAFTAR TUGAS ASLI (Sembunyi dulu) -->
+        <!-- ============================================== -->
+        <div id="list-view" class="view-section hidden-view">
             <div class="section-title">Tugas Tertunda (Pending)</div>
             <div id="hw-list-container">
                 <!-- Kartu Tugas Akan Dirender Di Sini Secara Realtime -->
-                <div class="empty-state">
-                    <i class="ph-bold ph-spinner ph-spin"></i>
-                    <p>Memuat data tugas...</p>
-                </div>
             </div>
         </div>
 
+        <!-- ============================================== -->
         <!-- VIEW 2: DETAIL TUGAS & FORM PENGERJAAN -->
+        <!-- ============================================== -->
         <div id="detail-view" class="view-section hidden-view">
             <div class="detail-code" id="det-code">#HW-XXXX</div>
             <h2 class="detail-title" id="det-title">Judul Tugas</h2>
@@ -175,7 +197,7 @@
                 <p id="det-instruction">Deskripsi instruksi akan muncul di sini...</p>
             </div>
 
-            <!-- Tombol Bantuan AI Baru -->
+            <!-- Tombol Bantuan AI -->
             <button class="btn-ai" id="btn-ai" onclick="getAIHelp()">
                 <i class="ph-fill ph-magic-wand"></i> Minta Rekomendasi Jawaban AI
             </button>
@@ -239,6 +261,7 @@
         let currentBase64Image = null;
 
         // Element UI
+        const skeletonView = document.getElementById('skeleton-view');
         const listView = document.getElementById('list-view');
         const detailView = document.getElementById('detail-view');
         const btnBack = document.getElementById('btn-back');
@@ -256,6 +279,14 @@
         const aiText = document.getElementById('ai-text');
         const btnAI = document.getElementById('btn-ai');
 
+        function hideSkeleton() {
+            skeletonView.classList.add('hidden-view');
+            // Jika kita tidak sedang membuka detail view, maka tampilkan list view
+            if (currentActiveTaskId === null) {
+                listView.classList.remove('hidden-view');
+            }
+        }
+
         // ==========================================
         // 1. PANTAU LOGIN & TARIK DATA REALTIME
         // ==========================================
@@ -271,6 +302,7 @@
                         pendingTasks.push({ id: doc.id, ...doc.data() });
                     });
                     renderTaskList();
+                    hideSkeleton(); // Sembunyikan skeleton ketika data sudah masuk
                 });
 
             } else {
@@ -281,6 +313,7 @@
                         <p style="font-size: 13px;">Silakan masuk (login) terlebih dahulu untuk melihat dan mengerjakan tugas.</p>
                     </div>
                 `;
+                hideSkeleton();
             }
         });
 
@@ -377,6 +410,10 @@
             // Ambil data untuk dikirim ke AI
             const taskTitle = document.getElementById('det-title').innerText;
             const taskInstruction = document.getElementById('det-instruction').innerText;
+            
+            // Format waktu saat ini untuk dilempar ke AI
+            const now = new Date();
+            const currentTimeStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
             btnAI.innerHTML = `<i class="ph-bold ph-spinner ph-spin"></i> Genius AI sedang berpikir...`;
             btnAI.disabled = true;
@@ -389,7 +426,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title: taskTitle,
-                        instruction: taskInstruction
+                        instruction: taskInstruction,
+                        currentTime: currentTimeStr
                     })
                 });
 
