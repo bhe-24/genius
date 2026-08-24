@@ -19,7 +19,6 @@
     
     <style>
         :root {
-            /* TEMA GENIUS */
             --primary: #1E3A8A;
             --primary-light: #3B82F6;
             --accent: #3B82F6;
@@ -33,6 +32,7 @@
             --bubble-bot-text: #1E293B;
             --bubble-user-bg: linear-gradient(135deg, var(--primary-light), var(--primary));
             --bubble-user-text: #FFFFFF;
+            --blue-gradient: linear-gradient(135deg, var(--primary-light), var(--primary));
             --radius-bubble: 18px;
             --font: 'Poppins', sans-serif;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
@@ -43,7 +43,6 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* MENGHINDARI BUG KEYBOARD HP: MENGGUNAKAN ABSOLUTE & FIXED TINGGI LAYAR */
         html, body {
             font-family: var(--font); background: var(--bg);
             width: 100%; height: 100%; height: 100dvh; overflow: hidden; 
@@ -55,9 +54,10 @@
             width: 100%; max-width: 480px; height: 100%;
             background: var(--surface); position: relative; box-shadow: var(--shadow-lg);
             display: flex; flex-direction: column;
+            overflow: hidden;
         }
 
-        /* ── HEADER (FIXED DI ATAS) ── */
+        /* ── HEADER (FIXED DI ATAS, TIDAK IKUT SCROLL) ── */
         .chat-header {
             background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
             backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -89,17 +89,18 @@
             color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.4rem;
             padding: 8px; cursor: pointer; transition: all 0.2s ease;
             display: flex; align-items: center; justify-content: center; text-decoration: none;
+            position: relative; z-index: 101;
         }
         .btn-back:hover { color: white; transform: translateX(2px); }
 
         /* ── CHAT BODY (AREA TENGAH YANG BISA DI SCROLL) ── */
         .chat-body {
-            /* Mendorong konten agar tidak tertutup header & footer fixed */
             padding-top: calc(75px + env(safe-area-inset-top)); 
             padding-bottom: calc(90px + env(safe-area-inset-bottom));
             padding-left: 16px; padding-right: 16px;
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
-            height: 100%; display: flex; flex-direction: column; gap: 8px;
+            height: 100%; flex: 1 1 auto; min-height: 0;
+            display: flex; flex-direction: column; gap: 8px;
         }
 
         .chat-body::-webkit-scrollbar { width: 4px; }
@@ -133,12 +134,14 @@
         .msg-time { font-size: 0.65rem; color: var(--text-muted); padding: 0 4px; margin-top: 2px; }
         .message-group.group-user .msg-time { text-align: right; }
 
-        /* TYPING INDICATOR */
+        /* TYPING INDICATOR (melayang di atas footer, TIDAK ikut alur flex chat-body) */
         .typing-indicator {
-            display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
+            display: none; position: absolute; left: 16px;
+            bottom: calc(90px + env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.95);
             padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
-            margin-bottom: 20px;
+            z-index: 90;
         }
         .typing-indicator.visible { display: flex; }
 
@@ -152,7 +155,7 @@
 
         @keyframes typingBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 
-        /* ── FOOTER INPUT (FIXED DI BAWAH & ANTI BUG KEYBOARD) ── */
+        /* ── FOOTER INPUT (FIXED DI BAWAH) ── */
         .chat-footer {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
             padding: 12px 14px; 
@@ -206,15 +209,12 @@
             display: flex; justify-content: center; align-items: center; gap: 8px;
         }
         
-        /* Tombol Simpan (Biru Terang) */
         .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         .modal-btn-save:active { transform: scale(0.97); }
 
-        /* Tombol Hapus (Transparan Merah) */
         .modal-btn-delete { background: rgba(239, 68, 68, 0.1); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.2); }
         .modal-btn-delete:active { background: #DC2626; color: white; transform: scale(0.97); }
         
-        /* Tombol Batal (Abu-abu kotak elegan) */
         .modal-btn-cancel { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0;}
         .modal-btn-cancel:active { background: #E2E8F0; transform: scale(0.97); }
 
@@ -223,7 +223,7 @@
 <body>
 
     <div class="chat-app">
-        <!-- HEADER (FIXED) -->
+        <!-- HEADER (FIXED, TIDAK IKUT SCROLL) -->
         <div class="chat-header">
             <div class="bot-avatar">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius">
@@ -232,22 +232,19 @@
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
-            <!-- Tombol Keluar AI memicu Modal Minimalis -->
             <button class="btn-back" id="btn-open-modal" title="Keluar">
                 <i class="ph-bold ph-door-open"></i>
             </button>
         </div>
 
-        <!-- CHAT BODY (SCROLLABLE AREA) -->
+        <!-- CHAT BODY (SATU-SATUNYA AREA YANG SCROLL) -->
         <div class="chat-body" id="chat-box">
             <!-- Messages rendered here via Firebase -->
         </div>
 
-        <!-- LOADING MUNCUL DI DALAM CHAT BODY AGAR TIDAK TERTUTUP INPUT -->
-        <div class="chat-body" style="flex: none; padding: 0 16px;">
-            <div class="typing-indicator" id="typing">
-                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
+        <!-- Typing indicator melayang, di luar alur flex chat-body -->
+        <div class="typing-indicator" id="typing">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </div>
 
         <!-- INPUT FORM (FIXED BOTTOM) -->
@@ -273,16 +270,13 @@
         </div>
     </div>
 
-    <!-- Script Library -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- FIREBASE & LOGIKA CHAT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -296,7 +290,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Referensi UI
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const chatForm = document.getElementById('chat-form');
@@ -309,7 +302,7 @@
         let currentUser = null;
         let isFetchingFirstTime = true; 
 
-        // ── AUTO RESIZE & SCROLL LOGIC SAAT NGETIK ──
+        // ── AUTO RESIZE & SCROLL LOGIC ──
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
@@ -319,7 +312,7 @@
         chatInput.addEventListener('focus', () => {
             setTimeout(() => {
                 chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-            }, 300); // Menunggu keyboard muncul sebelum otomatis scroll turun
+            }, 300); 
         });
 
         chatInput.addEventListener('keydown', (e) => {
@@ -334,7 +327,6 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // ── RENDER BUBBLE CHAT ──
         function renderBubble(sender, text, ts) {
             const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
@@ -343,7 +335,6 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
-            // Membersihkan teks dari bawaan sistem AI jika terlewat di server
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -362,7 +353,6 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
-        // ── PANTAU LOGIN & LOAD CHAT ──
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -399,7 +389,7 @@
             }
         });
 
-        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SUPER SAKTI (ANTI TYPO) ──
+        // ── FUNGSI EKSTRAK TANGGAL SUPER TANGGUH ──
         function formatTaskInput(rawText) {
             let text = rawText.substring(4).trim(); 
             
@@ -421,8 +411,8 @@
                 targetDate.setDate(targetDate.getDate() + 7);
                 dateFound = true;
             } else {
-                // REGEX SAKTI: Membaca teks "dealdintanggal", "tgl", "batas", dsb meskipun typo/tanpa spasi.
-                const dateRegex = /(?:tangg?al|tgl|deadline|dealdin|batas|kumpul)[a-z\s:-]*(\d{1,2})(?:\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des))?(?:\s+(\d{4}))?/i;
+                // Regex super ketat yang membaca paksa angka tanggal yang menyatu dengan huruf tanpa spasi!
+                const dateRegex = /(?:tangg?al|tgl|deadline|dealdin|batas|kumpul)[a-z\s:-]*(\d{1,2})(?:\s*(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des))?(?:\s*(\d{4}))?/i;
                 const match = text.match(dateRegex);
 
                 if (match) {
@@ -436,8 +426,7 @@
                         const foundMonth = monthNames.indexOf(monthStr);
                         if (foundMonth !== -1) month = foundMonth;
                     } else {
-                        // LOGIKA CERDAS: Jika angka hari yang diketik jauh lebih kecil dari hari ini, asumsikan itu untuk bulan depan.
-                        // (Misal hari ini tgl 24, lalu diketik "tanggal 5", maka jadinya tanggal 5 bulan depan).
+                        // LOGIKA ANTI-BODOH: Jika angka hari < dari hari ini, ia otomatis menaruhnya ke bulan depan.
                         if (day < targetDate.getDate() && (targetDate.getDate() - day) > 10) {
                             month += 1;
                         }
@@ -452,7 +441,6 @@
                 }
             }
 
-            // Jika sama sekali tidak ada kata penunjuk waktu, otomatis jadikan Besok
             if (!dateFound) {
                 targetDate.setDate(targetDate.getDate() + 1);
             }
@@ -462,7 +450,6 @@
             const dd = String(targetDate.getDate()).padStart(2, '0');
             const dateKey = `${yyyy}-${mm}-${dd}`;
 
-            // Ekstrak Judul Tugas Cerdas
             let title = "Tugas Baru";
             const subjectMatch = text.match(/(?:tugas|pr|project|laporan|makalah)\s+([a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)?)/i);
             
@@ -477,7 +464,7 @@
             return { title, instruction, dateKey, time: timeStr };
         }
 
-        // ── PROSES KIRIM CHAT & LOGIKA /ADD TUGAS ──
+        // ── PROSES KIRIM CHAT ──
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
@@ -490,7 +477,6 @@
             const chatRef = collection(db, "users", currentUser.uid, "chats");
             await addDoc(chatRef, { role: "user", message: text, createdAt: serverTimestamp() });
 
-            // LOGIKA PENAMBAHAN TUGAS OTOMATIS
             if (text.toLowerCase().startsWith('/add')) {
                 const taskData = formatTaskInput(text);
 
@@ -509,10 +495,16 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
             try {
+                // Memaksa pengiriman tanggal aktual ke API Vercel
+                const currentDateContext = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text }) 
+                    body: JSON.stringify({ 
+                        message: text,
+                        currentDate: currentDateContext
+                    }) 
                 });
 
                 const data = await response.json();
