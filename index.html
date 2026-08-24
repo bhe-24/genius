@@ -49,19 +49,22 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; text-decoration: none; -webkit-tap-highlight-color: transparent; }
 
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+        /* BODY & WRAPPER DIPERBAIKI AGAR HEADER FIXED SEMPURNA */
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; height: 100dvh; overflow: hidden; }
 
         .mobile-wrapper {
-            width: 100%; max-width: 480px; min-height: 100vh;
-            background-color: var(--bg-app); position: relative; overflow-x: hidden;
+            width: 100%; max-width: 480px; height: 100%;
+            background-color: var(--bg-app); position: relative; 
             display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        /* HEADER APP (FIXED/STICKY) */
+        /* HEADER APP (BENAR-BENAR FIXED) */
         header {
             background-color: var(--white); padding: 14px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-sm); z-index: 1000; flex-shrink: 0;
+            padding-top: max(14px, env(safe-area-inset-top)); 
         }
 
         .brand { display: flex; align-items: center; gap: 10px; }
@@ -86,6 +89,11 @@
         }
         .btn-install:active { transform: scale(0.95); }
 
+        /* KONTEN UTAMA YANG BISA DI-SCROLL */
+        .scrollable-content {
+            flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column;
+        }
+
         /* --- SKELETON SHIMMER EFFECT --- */
         .skeleton-box { position: relative; overflow: hidden; background-color: #CBD5E1; border-radius: 8px; }
         .skeleton-box::after {
@@ -102,7 +110,7 @@
         .dashboard-hero {
             background: var(--blue-gradient); padding: 30px 20px 40px;
             color: var(--white); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
-            box-shadow: var(--shadow-md); position: relative; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: var(--shadow-md); position: relative; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0;
         }
         
         .dash-header { display: flex; align-items: center; gap: 15px; }
@@ -119,7 +127,7 @@
         .task-alert i { font-size: 18px; color: #FCD34D; }
 
         /* RECENT CHAT WIDGET */
-        .recent-chat-container { padding: 0 20px; margin-top: -20px; z-index: 10; position: relative; }
+        .recent-chat-container { padding: 0 20px; margin-top: -20px; z-index: 10; position: relative; flex-shrink: 0; }
         .recent-chat-card {
             background: var(--white); border-radius: 20px; padding: 16px;
             box-shadow: var(--shadow-md); border: 1px solid #E2E8F0;
@@ -137,7 +145,7 @@
         .chat-empty { font-size: 12px; color: var(--text-muted); font-style: italic; text-align: center; padding: 10px 0; }
 
         /* MAIN MENU GRID */
-        .menu-section { padding: 25px 20px 40px; flex: 1; }
+        .menu-section { padding: 25px 20px 40px; flex-shrink: 0; }
         .menu-title { font-size: 14px; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; }
         
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -159,7 +167,7 @@
         .menu-card p { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 
         /* FOOTER PROFESIONAL */
-        footer { background: var(--white); border-top: 1px solid #E2E8F0; padding: 20px; text-align: center; }
+        footer { background: var(--white); border-top: 1px solid #E2E8F0; padding: 20px; text-align: center; flex-shrink: 0; }
         .footer-brand { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 10px; }
         .footer-brand img { height: 20px; opacity: 0.8; }
         .footer-brand span { font-size: 12px; font-weight: 700; color: var(--text-muted); }
@@ -176,7 +184,7 @@
     <!-- WRAPPER MOBILE -->
     <div class="mobile-wrapper">
         
-        <!-- HEADER (FIXED/STICKY) -->
+        <!-- HEADER (FIXED/STICKY SEMPURNA) -->
         <header>
             <div class="brand">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Logo">
@@ -199,123 +207,123 @@
             </div>
         </header>
 
-        <!-- ============================================== -->
-        <!-- VIEW 1: SKELETON LOADING (Tampil Saat Memuat) -->
-        <!-- ============================================== -->
-        <main id="main-skeleton" style="flex:1; display:flex; flex-direction:column;">
-            <!-- Hero Skeleton -->
-            <section class="dashboard-hero">
-                <div class="dash-header">
-                    <div class="skeleton-box skeleton-dark" style="width: 55px; height: 55px; border-radius: 16px;"></div>
-                    <div style="flex:1;">
-                        <div class="skeleton-box skeleton-dark" style="height: 20px; width: 60%; margin-bottom: 6px;"></div>
-                        <div class="skeleton-box skeleton-dark" style="height: 12px; width: 40%;"></div>
-                    </div>
-                </div>
-                <div class="skeleton-box skeleton-dark" style="height: 38px; width: 100%; border-radius: 12px;"></div>
-            </section>
+        <!-- KONTEN YANG BISA DI-SCROLL -->
+        <div class="scrollable-content">
 
-            <!-- Chat Widget Skeleton -->
-            <section class="recent-chat-container">
-                <div class="recent-chat-card">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                        <div class="skeleton-box" style="height: 16px; width: 40%;"></div>
-                        <div class="skeleton-box" style="height: 12px; width: 20%;"></div>
+            <!-- ============================================== -->
+            <!-- VIEW 1: SKELETON LOADING (Tampil Saat Memuat) -->
+            <!-- ============================================== -->
+            <main id="main-skeleton" style="display:flex; flex-direction:column;">
+                <section class="dashboard-hero">
+                    <div class="dash-header">
+                        <div class="skeleton-box skeleton-dark" style="width: 55px; height: 55px; border-radius: 16px;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-box skeleton-dark" style="height: 20px; width: 60%; margin-bottom: 6px;"></div>
+                            <div class="skeleton-box skeleton-dark" style="height: 12px; width: 40%;"></div>
+                        </div>
                     </div>
-                    <div class="skeleton-box" style="height: 50px; width: 100%; border-radius: 12px;"></div>
-                </div>
-            </section>
+                    <div class="skeleton-box skeleton-dark" style="height: 38px; width: 100%; border-radius: 12px;"></div>
+                </section>
 
-            <!-- Menu Grid Skeleton -->
-            <section class="menu-section">
-                <div class="skeleton-box" style="height: 16px; width: 30%; margin-bottom: 15px;"></div>
-                <div class="menu-grid">
-                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
-                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
-                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
-                    <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
-                </div>
-            </section>
-        </main>
-
-        <!-- ============================================== -->
-        <!-- VIEW 2: KONTEN ASLI (Tampil Setelah Data Ditarik) -->
-        <!-- ============================================== -->
-        <main id="main-content" style="flex:1; display:none; flex-direction:column;">
-            
-            <!-- DASHBOARD HERO -->
-            <section class="dashboard-hero">
-                <div class="dash-header">
-                    <img src="https://i.imgur.com/PpxQu9m.png" alt="Logo" class="dash-logo">
-                    <div class="dash-greeting">
-                        <h2 id="user-greeting">Halo, Pengguna!</h2>
-                        <p><i class="ph-bold ph-clock"></i> <span id="datetime-display">Memuat waktu...</span></p>
+                <section class="recent-chat-container">
+                    <div class="recent-chat-card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                            <div class="skeleton-box" style="height: 16px; width: 40%;"></div>
+                            <div class="skeleton-box" style="height: 12px; width: 20%;"></div>
+                        </div>
+                        <div class="skeleton-box" style="height: 50px; width: 100%; border-radius: 12px;"></div>
                     </div>
-                </div>
+                </section>
+
+                <section class="menu-section">
+                    <div class="skeleton-box" style="height: 16px; width: 30%; margin-bottom: 15px;"></div>
+                    <div class="menu-grid">
+                        <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                        <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                        <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                        <div class="skeleton-box" style="height: 130px; border-radius: 20px;"></div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- ============================================== -->
+            <!-- VIEW 2: KONTEN ASLI (Tampil Setelah Data Ditarik) -->
+            <!-- ============================================== -->
+            <main id="main-content" style="display:none; flex-direction:column;">
                 
-                <div class="task-alert" id="task-alert" style="display: none;">
-                    <i class="ph-fill ph-warning-circle"></i>
-                    <span id="task-alert-text">Memeriksa tugas...</span>
-                </div>
-            </section>
-
-            <!-- WIDGET RECENT CHAT AI -->
-            <section class="recent-chat-container">
-                <div class="recent-chat-card">
-                    <div class="recent-header">
-                        <h3><i class="ph-fill ph-robot"></i> Chat Terakhir</h3>
-                        <a href="asisten-ai.html">Lihat Semua</a>
+                <section class="dashboard-hero">
+                    <div class="dash-header">
+                        <img src="https://i.imgur.com/PpxQu9m.png" alt="Logo" class="dash-logo">
+                        <div class="dash-greeting">
+                            <h2 id="user-greeting">Halo, Pengguna!</h2>
+                            <p><i class="ph-bold ph-clock"></i> <span id="datetime-display">Memuat waktu...</span></p>
+                        </div>
                     </div>
                     
-                    <div class="chat-bubble" id="recent-chat-bubble">
-                        <p class="chat-empty">Memeriksa riwayat obrolan...</p>
+                    <div class="task-alert" id="task-alert" style="display: none;">
+                        <i class="ph-fill ph-warning-circle"></i>
+                        <span id="task-alert-text">Memeriksa tugas...</span>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- MENU UTAMA APLIKASI -->
-            <section class="menu-section">
-                <div class="menu-title">Menu Utama</div>
+                <section class="recent-chat-container">
+                    <div class="recent-chat-card">
+                        <div class="recent-header">
+                            <h3><i class="ph-fill ph-robot"></i> Chat Terakhir</h3>
+                            <a href="asisten-ai.html">Lihat Semua</a>
+                        </div>
+                        
+                        <div class="chat-bubble" id="recent-chat-bubble">
+                            <p class="chat-empty">Memeriksa riwayat obrolan...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="menu-section">
+                    <div class="menu-title">Menu Utama</div>
+                    
+                    <div class="menu-grid">
+                        <a href="asisten-ai.html" class="menu-card">
+                            <div class="menu-icon"><i class="ph-fill ph-chat-teardrop-text"></i></div>
+                            <h3>Asisten AI</h3>
+                            <p>Chat pintar & jadwal otomatis.</p>
+                        </a>
+                        <a href="kalender.html" class="menu-card">
+                            <div class="menu-icon"><i class="ph-fill ph-calendar-check"></i></div>
+                            <h3>Kalender</h3>
+                            <p>Pantau deadline visual.</p>
+                        </a>
+                        <a href="home-work.html" class="menu-card">
+                            <div class="menu-icon"><i class="ph-fill ph-books"></i></div>
+                            <h3>Home Work</h3>
+                            <p>Ruang kerja & bantuan AI.</p>
+                        </a>
+                        <a href="finish.html" class="menu-card">
+                            <div class="menu-icon"><i class="ph-fill ph-archive-box"></i></div>
+                            <h3>Finish System</h3>
+                            <p>Arsip & bukti tugas selesai.</p>
+                        </a>
+                    </div>
+                </section>
                 
-                <div class="menu-grid">
-                    <a href="asisten-ai.html" class="menu-card">
-                        <div class="menu-icon"><i class="ph-fill ph-chat-teardrop-text"></i></div>
-                        <h3>Asisten AI</h3>
-                        <p>Chat pintar & jadwal otomatis.</p>
-                    </a>
-                    <a href="kalender.html" class="menu-card">
-                        <div class="menu-icon"><i class="ph-fill ph-calendar-check"></i></div>
-                        <h3>Kalender</h3>
-                        <p>Pantau deadline visual.</p>
-                    </a>
-                    <a href="home-work.html" class="menu-card">
-                        <div class="menu-icon"><i class="ph-fill ph-books"></i></div>
-                        <h3>Home Work</h3>
-                        <p>Ruang kerja & bantuan AI.</p>
-                    </a>
-                    <a href="finish.html" class="menu-card">
-                        <div class="menu-icon"><i class="ph-fill ph-archive-box"></i></div>
-                        <h3>Finish System</h3>
-                        <p>Arsip & bukti tugas selesai.</p>
-                    </a>
-                </div>
-            </section>
-        </main>
+                <!-- FOOTER -->
+                <footer>
+                    <div class="footer-brand">
+                        <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
+                        <span>GENIUS HOME WORK</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="index.html">Beranda</a>
+                        <a href="home-work.html">Ruang Tugas</a>
+                        <a href="kalender.html">Jadwal</a>
+                        <a href="asisten-ai.html">Pusat Bantuan AI</a>
+                    </div>
+                    <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
+                </footer>
+                
+            </main>
 
-        <!-- FOOTER WEBSITE PROFESIONAL -->
-        <footer>
-            <div class="footer-brand">
-                <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
-                <span>GENIUS HOME WORK</span>
-            </div>
-            <div class="footer-links">
-                <a href="index.html">Beranda</a>
-                <a href="home-work.html">Ruang Tugas</a>
-                <a href="kalender.html">Jadwal</a>
-                <a href="asisten-ai.html">Pusat Bantuan AI</a>
-            </div>
-            <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
-        </footer>
+        </div> <!-- END SCROLLABLE CONTENT -->
 
     </div> <!-- END MOBILE WRAPPER -->
 
@@ -323,45 +331,33 @@
     <!-- SCRIPT INSTALL PWA & SERVICE WORKER        -->
     <!-- ========================================== -->
     <script>
-        // Logika Menampilkan Tombol Install App
         let deferredPrompt;
         const installBtn = document.getElementById('btn-install');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah Chrome memunculkan prompt mini secara otomatis
             e.preventDefault();
-            // Simpan event sehingga bisa dipicu nanti
             deferredPrompt = e;
-            // Tampilkan tombol Install App kita
             installBtn.style.display = 'flex';
         });
 
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Munculkan prompt instalasi bawaan browser
                 deferredPrompt.prompt();
-                // Tunggu respon dari user (apakah klik Install atau Batal)
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
-                    // Jika diinstal, sembunyikan tombol selamanya
                     installBtn.style.display = 'none';
                 }
                 deferredPrompt = null;
             }
         });
 
-        // Event listener jika aplikasi berhasil di-install
         window.addEventListener('appinstalled', () => {
             installBtn.style.display = 'none';
-            console.log('PWA berhasil di-install');
         });
 
-        // Daftarkan Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker terdaftar!', reg))
-                .catch(err => console.log('Service Worker gagal terdaftar.', err));
+                navigator.serviceWorker.register('sw.js');
             });
         }
     </script>
@@ -372,7 +368,6 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // 1. UPDATE JAM & TANGGAL REAL-TIME
         function updateClock() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -385,7 +380,6 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 2. FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -399,7 +393,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Referensi UI
         const authContainer = document.getElementById('auth-container');
         const userGreeting = document.getElementById('user-greeting');
         const taskAlert = document.getElementById('task-alert');
@@ -414,10 +407,8 @@
             contentView.style.display = 'flex';
         }
 
-        // 3. LOGIKA TARIK DATA ASLI
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // UI Jika Login
                 authContainer.innerHTML = `
                     <a href="profil.html" class="btn btn-primary">
                         <i class="ph-bold ph-user"></i> Profil
@@ -425,7 +416,6 @@
                 `;
                 
                 try {
-                    // A. TAMPILKAN NAMA ASLI
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     if (docSnap.exists()) {
                         const namaLengkap = docSnap.data().name || 'Pengguna';
@@ -433,7 +423,6 @@
                         userGreeting.innerText = `Halo, ${namaPanggilan}!`;
                     }
 
-                    // B. HITUNG JUMLAH TUGAS PENDING ASLI
                     const qTasks = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
                     const taskSnap = await getDocs(qTasks);
                     
@@ -445,7 +434,6 @@
                         taskAlert.style.display = 'none';
                     }
 
-                    // C. AMBIL RIWAYAT CHAT ASLI TERAKHIR
                     const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc"), limit(1));
                     const chatSnap = await getDocs(qChat);
                     
@@ -458,7 +446,6 @@
                     }
 
                 } catch (error) {
-                    console.error("Terjadi kendala saat menarik data: ", error);
                     userGreeting.innerText = `Halo, Pengguna!`;
                     taskAlert.style.display = 'none';
                     recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada riwayat obrolan.</p>`;
@@ -467,7 +454,6 @@
                 }
 
             } else {
-                // UI Jika Belum Login
                 authContainer.innerHTML = `
                     <a href="login.html" class="btn btn-outline">Masuk</a>
                     <a href="login.html" class="btn btn-primary">Daftar</a>
