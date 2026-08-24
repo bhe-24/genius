@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Asisten AI - Genius</title>
     
     <meta name="theme-color" content="#1E3A8A">
@@ -15,7 +15,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- MENGGUNAKAN SWEETALERT2 UNTUK POP-UP EXIT -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
@@ -33,33 +32,41 @@
             --bubble-bot-text: #1E293B;
             --bubble-user-bg: linear-gradient(135deg, var(--primary-light), var(--primary));
             --bubble-user-text: #FFFFFF;
+            --blue-gradient: linear-gradient(135deg, var(--primary-light), var(--primary));
             --radius-bubble: 18px;
             --font: 'Poppins', sans-serif;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
             --shadow-lg: 0 10px 28px rgba(0,0,0,0.12);
             --glass-blur: 10px;
+            /* Tinggi layar sebenarnya, dihitung & diperbarui via JS (visualViewport)
+               supaya akurat di semua HP, termasuk saat keyboard/navigasi muncul. */
+            --app-height: 100dvh;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* ── MENGGUNAKAN LAYOUT FLEXBOX NATIVE APP (ANTI BUG KEYBOARD) ── */
+        /* ── STRUKTUR PURE FLEXBOX NATIVE APP (ANTI TERTUTUP KEYBOARD/NAVIGASI HP) ── */
         html, body {
             font-family: var(--font); background: var(--bg);
-            /* 100dvh otomatis menyesuaikan tinggi layar saat keyboard muncul */
-            width: 100%; height: 100dvh; overflow: hidden; 
-            display: flex; justify-content: center;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            height: var(--app-height); /* di-override JS, paling akurat lintas perangkat */
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            position: fixed; top: 0; left: 0; /* mengunci viewport agar body tidak ikut ter-scroll saat keyboard naik */
         }
 
         .chat-app {
             width: 100%; max-width: 480px; height: 100%;
             background: var(--surface); box-shadow: var(--shadow-lg);
-            display: flex; flex-direction: column; /* Menggunakan kolom dari atas ke bawah */
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
 
-        /* ── HEADER (DIPAKU MATI DI ATAS TANPA ABSOLUTE) ── */
+        /* ── HEADER ── */
         .chat-header {
-            flex-shrink: 0; /* Tidak boleh mengecil */
+            flex-shrink: 0; 
             background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
             color: white; padding: 14px 18px; display: flex; align-items: center; gap: 12px;
             z-index: 10; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -87,16 +94,16 @@
 
         .btn-back {
             color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.4rem;
-            padding: 8px; cursor: pointer; transition: 0.2s; display: flex;
+            padding: 8px; cursor: pointer; transition: all 0.2s ease; display: flex;
         }
         .btn-back:hover { color: white; transform: translateX(2px); }
 
-        /* ── CHAT BODY (AREA SATU-SATUNYA YANG BISA SCROLL) ── */
+        /* ── CHAT BODY (SCROLLABLE AREA DI TENGAH) ── */
         .chat-body {
-            flex: 1 1 auto; /* Ambil semua sisa layar di tengah */
+            flex: 1 1 auto; 
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
-            padding: 20px 16px; display: flex; flex-direction: column; gap: 8px;
-            min-height: 0; /* Penting agar flexbox tidak mendobrak layar */
+            padding: 16px; display: flex; flex-direction: column; gap: 8px;
+            min-height: 0;
         }
 
         .chat-body::-webkit-scrollbar { width: 4px; }
@@ -130,14 +137,11 @@
         .message-group.group-user .msg-time { text-align: right; }
 
         /* ── TYPING INDICATOR ── */
-        .typing-wrapper {
-            padding: 0 16px; background: var(--surface); flex-shrink: 0;
-        }
         .typing-indicator {
             display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
             padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
-            margin-bottom: 10px; width: fit-content;
+            margin: 0 16px 8px; width: fit-content; flex-shrink: 0;
         }
         .typing-indicator.visible { display: flex; }
 
@@ -148,11 +152,14 @@
 
         @keyframes typingBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 
-        /* ── FOOTER INPUT (DIPAKU MATI DI BAWAH TANPA ABSOLUTE) ── */
+        /* ── FOOTER INPUT (TERKUNCI DI BAWAH SECARA FLEKSIBEL AMAN DARI NAVIGATION BAR HP) ── */
         .chat-footer {
-            flex-shrink: 0; /* Tidak boleh mengecil saat scroll */
+            flex-shrink: 0; 
             padding: 12px 14px; 
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            /* Menggunakan safe-area-inset-bottom agar tidak tertutup bar navigasi/gesture bawah di HP modern.
+               Nilai ini otomatis 0 di HP yang tidak butuh (mis. masih pakai tombol fisik/nav bar lama),
+               dan otomatis membesar di HP dengan gesture bar / notch bawah. */
+            padding-bottom: max(14px, env(safe-area-inset-bottom));
             background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(225, 234, 245, 0.8);
             display: flex; gap: 10px; align-items: flex-end; 
             box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 100;
@@ -177,7 +184,7 @@
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
         .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
-        /* SweetAlert Custom UI Overrides (agar estetik PWA) */
+        /* SweetAlert Custom UI Overrides */
         .swal2-popup { border-radius: 20px !important; padding: 20px !important; }
         .swal2-title { font-size: 1.2rem !important; color: var(--text-primary) !important; font-family: 'Poppins', sans-serif !important; }
         .swal2-html-container { font-size: 0.85rem !important; color: var(--text-muted) !important; }
@@ -188,7 +195,7 @@
 <body>
 
     <div class="chat-app">
-        <!-- HEADER (FIXED: Tidak akan ke-scroll) -->
+        <!-- HEADER (FIXED DI ATAS) -->
         <header class="chat-header">
             <div class="bot-avatar">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius">
@@ -197,25 +204,22 @@
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
-            <!-- Tombol Keluar AI memicu SweetAlert -->
             <button class="btn-back" id="btn-open-modal" title="Keluar">
                 <i class="ph-bold ph-door-open"></i>
             </button>
         </header>
 
-        <!-- CHAT BODY (Hanya area ini yang scrollable) -->
+        <!-- CHAT BODY (SCROLLABLE AREA DI TENGAH) -->
         <main class="chat-body" id="chat-box">
             <!-- Messages rendered here via Firebase -->
         </main>
 
-        <!-- TYPING INDICATOR (Terpisah agar tidak ganggu scroll) -->
-        <div class="typing-wrapper">
-            <div class="typing-indicator" id="typing">
-                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
+        <!-- TYPING INDICATOR -->
+        <div class="typing-indicator" id="typing">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </div>
 
-        <!-- INPUT FORM (FIXED BOTTOM: Aman dari keyboard) -->
+        <!-- INPUT FORM (FLEX FOOTER BAWAH: AMAN DARI NAVIGASI HP) -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
                 <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
@@ -229,13 +233,56 @@
     <!-- Script Library (SweetAlert2) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- FIX TINGGI LAYAR DINAMIS (mengatasi keyboard & navigation bar yang beda-beda di tiap HP) -->
+    <script>
+        (function () {
+            function setAppHeight() {
+                // Pakai visualViewport kalau tersedia (paling akurat: ikut berubah saat keyboard naik/turun),
+                // fallback ke innerHeight untuk browser lama.
+                var vv = window.visualViewport;
+                var h = vv ? vv.height : window.innerHeight;
+                document.documentElement.style.setProperty('--app-height', h + 'px');
+            }
+
+            setAppHeight();
+            window.addEventListener('resize', setAppHeight);
+            window.addEventListener('orientationchange', setAppHeight);
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setAppHeight);
+                window.visualViewport.addEventListener('scroll', setAppHeight);
+            }
+
+            // Setelah keyboard selesai animasi naik, pastikan area chat tetap scroll ke pesan terakhir
+            // (perilaku ini sama seperti WhatsApp: input tidak pernah ketutup keyboard/nav bar).
+            window.addEventListener('DOMContentLoaded', function () {
+                var chatBox = document.getElementById('chat-box');
+                var chatInput = document.getElementById('chat-input');
+                if (!chatInput || !chatBox) return;
+
+                var scrollToBottom = function () {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                };
+
+                chatInput.addEventListener('focus', function () {
+                    setTimeout(scrollToBottom, 300);
+                });
+
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', function () {
+                        setTimeout(scrollToBottom, 50);
+                    });
+                }
+            });
+        })();
+    </script>
+
     <!-- FIREBASE & LOGIKA CHAT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -249,7 +296,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Referensi UI
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const chatForm = document.getElementById('chat-form');
@@ -261,14 +307,13 @@
         let currentUser = null;
         let isFetchingFirstTime = true; 
 
-        // ── AUTO RESIZE & SCROLL LOGIC SAAT NGETIK (ANTI-BUG KEYBOARD) ──
+        // ── AUTO RESIZE & SCROLL LOGIC ──
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             btnSend.disabled = chatInput.value.trim() === '';
         });
 
-        // Trik agar otomatis scroll bawah saat keyboard hp terbuka
         chatInput.addEventListener('focus', () => {
             setTimeout(() => {
                 chatBox.scrollTop = chatBox.scrollHeight;
@@ -287,7 +332,6 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
-        // ── RENDER BUBBLE CHAT ──
         function renderBubble(sender, text, ts) {
             const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
@@ -296,7 +340,6 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
-            // Membersihkan teks dari bawaan sistem AI
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -315,7 +358,6 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
-        // ── PANTAU LOGIN & LOAD CHAT ──
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -352,7 +394,7 @@
             }
         });
 
-        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SUPER SAKTI (ANTI TYPO) ──
+        // ── FUNGSI EKSTRAK TANGGAL SUPER TANGGUH (ANTI TYPO) ──
         function formatTaskInput(rawText) {
             let text = rawText.substring(4).trim(); 
             
@@ -374,7 +416,7 @@
                 targetDate.setDate(targetDate.getDate() + 7);
                 dateFound = true;
             } else {
-                // Regex super ketat Anti Typo
+                // Regex super ketat Anti Typo untuk menangkap "dealdintanggal 26", "tgl26", dll.
                 const dateRegex = /(?:tangg?al|tgl|deadline|dealdin|batas|kumpul)[a-z\s:-]*(\d{1,2})(?:\s*(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des))?(?:\s*(\d{4}))?/i;
                 const match = text.match(dateRegex);
 
@@ -389,7 +431,7 @@
                         const foundMonth = monthNames.indexOf(monthStr);
                         if (foundMonth !== -1) month = foundMonth;
                     } else {
-                        // LOGIKA ANTI-BODOH: Jika angka hari < dari hari ini, otomatis geser ke bulan depan.
+                        // Jika angka hari < dari hari ini, otomatis geser ke bulan depan.
                         if (day < targetDate.getDate() && (targetDate.getDate() - day) > 10) {
                             month += 1;
                         }
@@ -458,7 +500,6 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
             try {
-                // Memaksa pengiriman tanggal aktual ke API Vercel
                 const currentDateContext = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
                 const response = await fetch('/api/chat', {
@@ -489,7 +530,7 @@
             }
         });
 
-        // ── POP-UP EXIT (MENGGUNAKAN SWEETALERT2, LEBIH STABIL & KEREN) ──
+        // ── POP-UP EXIT MENGGUNAKAN SWEETALERT2 ──
         document.getElementById('btn-open-modal').addEventListener('click', () => {
             Swal.fire({
                 title: 'Keluar Asisten AI',
@@ -500,16 +541,14 @@
                 confirmButtonText: '<i class="ph-bold ph-floppy-disk"></i> Simpan Chat',
                 denyButtonText: '<i class="ph-bold ph-trash"></i> Hapus Chat',
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#3B82F6', // Biru
-                denyButtonColor: '#EF4444',    // Merah
-                cancelButtonColor: '#94A3B8',  // Abu-abu
+                confirmButtonColor: '#3B82F6', 
+                denyButtonColor: '#EF4444',    
+                cancelButtonColor: '#94A3B8',  
                 reverseButtons: true
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    // Tombol Simpan
                     window.location.href = 'index.html';
                 } else if (result.isDenied) {
-                    // Tombol Hapus
                     if (!currentUser) return window.location.href = 'index.html';
                     
                     Swal.fire({title: 'Menghapus riwayat...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
