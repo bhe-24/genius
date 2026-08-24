@@ -15,6 +15,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- MENGGUNAKAN SWEETALERT2 UNTUK POP-UP EXIT -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
@@ -32,7 +33,6 @@
             --bubble-bot-text: #1E293B;
             --bubble-user-bg: linear-gradient(135deg, var(--primary-light), var(--primary));
             --bubble-user-text: #FFFFFF;
-            --blue-gradient: linear-gradient(135deg, var(--primary-light), var(--primary));
             --radius-bubble: 18px;
             --font: 'Poppins', sans-serif;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
@@ -43,26 +43,26 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+        /* ── MENGGUNAKAN LAYOUT FLEXBOX NATIVE APP (ANTI BUG KEYBOARD) ── */
         html, body {
             font-family: var(--font); background: var(--bg);
-            width: 100%; height: 100%; height: 100dvh; overflow: hidden; 
-            display: flex; justify-content: center; position: fixed;
+            /* 100dvh otomatis menyesuaikan tinggi layar saat keyboard muncul */
+            width: 100%; height: 100dvh; overflow: hidden; 
+            display: flex; justify-content: center;
         }
 
-        /* ── CONTAINER UTAMA ── */
         .chat-app {
             width: 100%; max-width: 480px; height: 100%;
-            background: var(--surface); position: relative; box-shadow: var(--shadow-lg);
-            display: flex; flex-direction: column;
-            overflow: hidden;
+            background: var(--surface); box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column; /* Menggunakan kolom dari atas ke bawah */
         }
 
-        /* ── HEADER (FIXED DI ATAS, TIDAK IKUT SCROLL) ── */
+        /* ── HEADER (DIPAKU MATI DI ATAS TANPA ABSOLUTE) ── */
         .chat-header {
+            flex-shrink: 0; /* Tidak boleh mengecil */
             background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
-            backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
             color: white; padding: 14px 18px; display: flex; align-items: center; gap: 12px;
-            position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+            z-index: 10; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15); 
             padding-top: max(14px, env(safe-area-inset-top)); 
         }
@@ -71,7 +71,7 @@
             width: 42px; height: 42px; background: var(--surface);
             border: 1.5px solid rgba(255, 255, 255, 0.3); border-radius: 12px;
             display: flex; justify-content: center; align-items: center; padding: 4px;
-            flex-shrink: 0; box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2); overflow: hidden;
+            flex-shrink: 0; overflow: hidden;
         }
         .bot-avatar img { width: 100%; height: 100%; object-fit: contain; }
 
@@ -81,26 +81,22 @@
         
         .online-dot {
             width: 6px; height: 6px; background: #10b981; border-radius: 50%;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); animation: pulse 2s infinite;
+            animation: pulse 2s infinite;
         }
         @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); } 50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); } }
 
         .btn-back {
             color: rgba(255, 255, 255, 0.75); background: none; border: none; font-size: 1.4rem;
-            padding: 8px; cursor: pointer; transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center; text-decoration: none;
-            position: relative; z-index: 101;
+            padding: 8px; cursor: pointer; transition: 0.2s; display: flex;
         }
         .btn-back:hover { color: white; transform: translateX(2px); }
 
-        /* ── CHAT BODY (AREA TENGAH YANG BISA DI SCROLL) ── */
+        /* ── CHAT BODY (AREA SATU-SATUNYA YANG BISA SCROLL) ── */
         .chat-body {
-            padding-top: calc(75px + env(safe-area-inset-top)); 
-            padding-bottom: calc(90px + env(safe-area-inset-bottom));
-            padding-left: 16px; padding-right: 16px;
+            flex: 1 1 auto; /* Ambil semua sisa layar di tengah */
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
-            height: 100%; flex: 1 1 auto; min-height: 0;
-            display: flex; flex-direction: column; gap: 8px;
+            padding: 20px 16px; display: flex; flex-direction: column; gap: 8px;
+            min-height: 0; /* Penting agar flexbox tidak mendobrak layar */
         }
 
         .chat-body::-webkit-scrollbar { width: 4px; }
@@ -121,8 +117,8 @@
         }
 
         .bubble-bot {
-            background: rgba(255, 255, 255, 0.95);
-            color: var(--bubble-bot-text); border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
+            background: rgba(255, 255, 255, 0.95); color: var(--bubble-bot-text); 
+            border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             box-shadow: var(--shadow-md); border: 1px solid rgba(225, 234, 245, 0.8);
         }
         .bubble-user {
@@ -130,39 +126,36 @@
             border-radius: var(--radius-bubble) 4px var(--radius-bubble) var(--radius-bubble);
             box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25);
         }
-
         .msg-time { font-size: 0.65rem; color: var(--text-muted); padding: 0 4px; margin-top: 2px; }
         .message-group.group-user .msg-time { text-align: right; }
 
-        /* TYPING INDICATOR (melayang di atas footer, TIDAK ikut alur flex chat-body) */
+        /* ── TYPING INDICATOR ── */
+        .typing-wrapper {
+            padding: 0 16px; background: var(--surface); flex-shrink: 0;
+        }
         .typing-indicator {
-            display: none; position: absolute; left: 16px;
-            bottom: calc(90px + env(safe-area-inset-bottom));
-            background: rgba(255, 255, 255, 0.95);
+            display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
             padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
-            z-index: 90;
+            margin-bottom: 10px; width: fit-content;
         }
         .typing-indicator.visible { display: flex; }
 
-        .dot {
-            width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
-            animation: typingBounce 1.4s ease-in-out infinite;
-        }
+        .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: typingBounce 1.4s ease-in-out infinite; }
         .dot:nth-child(1) { animation-delay: 0s; }
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typingBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 
-        /* ── FOOTER INPUT (FIXED DI BAWAH) ── */
+        /* ── FOOTER INPUT (DIPAKU MATI DI BAWAH TANPA ABSOLUTE) ── */
         .chat-footer {
-            position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
+            flex-shrink: 0; /* Tidak boleh mengecil saat scroll */
             padding: 12px 14px; 
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(225, 234, 245, 0.8);
             display: flex; gap: 10px; align-items: flex-end; 
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 100;
         }
 
         .input-wrap {
@@ -184,47 +177,19 @@
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
         .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
-        /* ── EXIT MODAL (DIBERSIHKAN MINIMALIS & MODERN) ── */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            display: none; justify-content: center; align-items: center; z-index: 9999; 
-            opacity: 0; transition: opacity 0.3s ease; padding: 20px; box-sizing: border-box;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-
-        .modal-box {
-            background: rgba(255, 255, 255, 1); padding: 30px 24px; border-radius: 20px;
-            width: 100%; max-width: 320px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            transform: translateY(20px); transition: transform 0.3s ease; border: none;
-        }
-        .modal-overlay.active .modal-box { transform: translateY(0); }
-
-        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 25px; }
-
-        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
-        .modal-btn { 
-            padding: 14px; border-radius: 12px; font-weight: 600; font-size: 0.95rem; 
-            cursor: pointer; transition: 0.2s; border: none;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        
-        .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        .modal-btn-save:active { transform: scale(0.97); }
-
-        .modal-btn-delete { background: rgba(239, 68, 68, 0.1); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .modal-btn-delete:active { background: #DC2626; color: white; transform: scale(0.97); }
-        
-        .modal-btn-cancel { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0;}
-        .modal-btn-cancel:active { background: #E2E8F0; transform: scale(0.97); }
-
+        /* SweetAlert Custom UI Overrides (agar estetik PWA) */
+        .swal2-popup { border-radius: 20px !important; padding: 20px !important; }
+        .swal2-title { font-size: 1.2rem !important; color: var(--text-primary) !important; font-family: 'Poppins', sans-serif !important; }
+        .swal2-html-container { font-size: 0.85rem !important; color: var(--text-muted) !important; }
+        .swal2-actions { width: 100% !important; flex-direction: column !important; gap: 8px !important; margin-top: 20px !important;}
+        .swal2-confirm, .swal2-deny, .swal2-cancel { width: 100% !important; margin: 0 !important; border-radius: 12px !important; font-size: 0.95rem !important; font-weight: 600 !important; font-family: 'Poppins', sans-serif !important; padding: 12px !important;}
     </style>
 </head>
 <body>
 
     <div class="chat-app">
-        <!-- HEADER (FIXED, TIDAK IKUT SCROLL) -->
-        <div class="chat-header">
+        <!-- HEADER (FIXED: Tidak akan ke-scroll) -->
+        <header class="chat-header">
             <div class="bot-avatar">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius">
             </div>
@@ -232,22 +197,25 @@
                 <h2>Genius AI</h2>
                 <p><span class="online-dot" id="status-dot"></span> <span id="status-text">Menyambung...</span></p>
             </div>
+            <!-- Tombol Keluar AI memicu SweetAlert -->
             <button class="btn-back" id="btn-open-modal" title="Keluar">
                 <i class="ph-bold ph-door-open"></i>
             </button>
-        </div>
+        </header>
 
-        <!-- CHAT BODY (SATU-SATUNYA AREA YANG SCROLL) -->
-        <div class="chat-body" id="chat-box">
+        <!-- CHAT BODY (Hanya area ini yang scrollable) -->
+        <main class="chat-body" id="chat-box">
             <!-- Messages rendered here via Firebase -->
+        </main>
+
+        <!-- TYPING INDICATOR (Terpisah agar tidak ganggu scroll) -->
+        <div class="typing-wrapper">
+            <div class="typing-indicator" id="typing">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
         </div>
 
-        <!-- Typing indicator melayang, di luar alur flex chat-body -->
-        <div class="typing-indicator" id="typing">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-
-        <!-- INPUT FORM (FIXED BOTTOM) -->
+        <!-- INPUT FORM (FIXED BOTTOM: Aman dari keyboard) -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
                 <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
@@ -258,25 +226,16 @@
         </form>
     </div>
 
-    <!-- EXIT MODAL (MINIMALIS & MODERN) -->
-    <div id="exit-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title">Keluar Asisten AI</div>
-            <div class="modal-btns">
-                <button class="modal-btn modal-btn-save" id="btn-save-exit">Simpan Chat</button>
-                <button class="modal-btn modal-btn-delete" id="btn-delete-exit">Hapus Chat</button>
-                <button class="modal-btn modal-btn-cancel" id="btn-cancel-exit">Batal</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Script Library (SweetAlert2) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- FIREBASE & LOGIKA CHAT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
             authDomain: "mading-cf676.firebaseapp.com",
@@ -290,6 +249,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Referensi UI
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         const chatForm = document.getElementById('chat-form');
@@ -297,21 +257,21 @@
         const typingIndicator = document.getElementById('typing');
         const statusText = document.getElementById('status-text');
         const statusDot = document.getElementById('status-dot');
-        const exitModal = document.getElementById('exit-modal');
 
         let currentUser = null;
         let isFetchingFirstTime = true; 
 
-        // ── AUTO RESIZE & SCROLL LOGIC ──
+        // ── AUTO RESIZE & SCROLL LOGIC SAAT NGETIK (ANTI-BUG KEYBOARD) ──
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             btnSend.disabled = chatInput.value.trim() === '';
         });
 
+        // Trik agar otomatis scroll bawah saat keyboard hp terbuka
         chatInput.addEventListener('focus', () => {
             setTimeout(() => {
-                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+                chatBox.scrollTop = chatBox.scrollHeight;
             }, 300); 
         });
 
@@ -327,6 +287,7 @@
             return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
         }
 
+        // ── RENDER BUBBLE CHAT ──
         function renderBubble(sender, text, ts) {
             const isBot = sender === 'bot' || sender === 'ai';
             const grp = document.createElement('div');
@@ -335,6 +296,7 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
+            // Membersihkan teks dari bawaan sistem AI
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -353,6 +315,7 @@
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
         }
 
+        // ── PANTAU LOGIN & LOAD CHAT ──
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -389,7 +352,7 @@
             }
         });
 
-        // ── FUNGSI EKSTRAK TANGGAL SUPER TANGGUH ──
+        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SUPER SAKTI (ANTI TYPO) ──
         function formatTaskInput(rawText) {
             let text = rawText.substring(4).trim(); 
             
@@ -411,7 +374,7 @@
                 targetDate.setDate(targetDate.getDate() + 7);
                 dateFound = true;
             } else {
-                // Regex super ketat yang membaca paksa angka tanggal yang menyatu dengan huruf tanpa spasi!
+                // Regex super ketat Anti Typo
                 const dateRegex = /(?:tangg?al|tgl|deadline|dealdin|batas|kumpul)[a-z\s:-]*(\d{1,2})(?:\s*(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des))?(?:\s*(\d{4}))?/i;
                 const match = text.match(dateRegex);
 
@@ -426,7 +389,7 @@
                         const foundMonth = monthNames.indexOf(monthStr);
                         if (foundMonth !== -1) month = foundMonth;
                     } else {
-                        // LOGIKA ANTI-BODOH: Jika angka hari < dari hari ini, ia otomatis menaruhnya ke bulan depan.
+                        // LOGIKA ANTI-BODOH: Jika angka hari < dari hari ini, otomatis geser ke bulan depan.
                         if (day < targetDate.getDate() && (targetDate.getDate() - day) > 10) {
                             month += 1;
                         }
@@ -464,7 +427,7 @@
             return { title, instruction, dateKey, time: timeStr };
         }
 
-        // ── PROSES KIRIM CHAT ──
+        // ── PROSES KIRIM CHAT & LOGIKA /ADD TUGAS ──
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
@@ -526,48 +489,49 @@
             }
         });
 
-        // ── LOGIKA MODAL EXIT & DELETE ──
+        // ── POP-UP EXIT (MENGGUNAKAN SWEETALERT2, LEBIH STABIL & KEREN) ──
         document.getElementById('btn-open-modal').addEventListener('click', () => {
-            exitModal.classList.add('active');
-            chatInput.blur();
-        });
+            Swal.fire({
+                title: 'Keluar Asisten AI',
+                text: "Simpan riwayat obrolan atau hapus selamanya? (Tugas yang sudah di-add tetap aman!)",
+                icon: 'question',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<i class="ph-bold ph-floppy-disk"></i> Simpan Chat',
+                denyButtonText: '<i class="ph-bold ph-trash"></i> Hapus Chat',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#3B82F6', // Biru
+                denyButtonColor: '#EF4444',    // Merah
+                cancelButtonColor: '#94A3B8',  // Abu-abu
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    // Tombol Simpan
+                    window.location.href = 'index.html';
+                } else if (result.isDenied) {
+                    // Tombol Hapus
+                    if (!currentUser) return window.location.href = 'index.html';
+                    
+                    Swal.fire({title: 'Menghapus riwayat...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
-        document.getElementById('btn-cancel-exit').addEventListener('click', () => {
-            exitModal.classList.remove('active');
-        });
+                    try {
+                        const q = query(collection(db, "users", currentUser.uid, "chats"));
+                        const querySnapshot = await getDocs(q);
+                        
+                        const deletePromises = [];
+                        querySnapshot.forEach((docSnap) => {
+                            deletePromises.push(deleteDoc(doc(db, "users", currentUser.uid, "chats", docSnap.id)));
+                        });
 
-        exitModal.addEventListener('click', (e) => {
-            if (e.target === exitModal) exitModal.classList.remove('active');
-        });
+                        await Promise.all(deletePromises);
+                        window.location.href = 'index.html';
 
-        document.getElementById('btn-save-exit').addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
-
-        document.getElementById('btn-delete-exit').addEventListener('click', async () => {
-            if (!currentUser) return window.location.href = 'index.html';
-
-            const btnDel = document.getElementById('btn-delete-exit');
-            btnDel.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menghapus...';
-            btnDel.disabled = true;
-
-            try {
-                const q = query(collection(db, "users", currentUser.uid, "chats"));
-                const querySnapshot = await getDocs(q);
-                
-                const deletePromises = [];
-                querySnapshot.forEach((docSnap) => {
-                    deletePromises.push(deleteDoc(doc(db, "users", currentUser.uid, "chats", docSnap.id)));
-                });
-
-                await Promise.all(deletePromises);
-                window.location.href = 'index.html';
-
-            } catch (error) {
-                console.error("Gagal menghapus riwayat:", error);
-                alert("Gagal menghapus riwayat chat. Periksa koneksi.");
-                window.location.href = 'index.html';
-            }
+                    } catch (error) {
+                        console.error("Gagal menghapus:", error);
+                        Swal.fire('Error', 'Gagal menghapus riwayat chat.', 'error');
+                    }
+                }
+            });
         });
 
     </script>
