@@ -1,34 +1,30 @@
-const CACHE_NAME = 'genius-app-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/asisten-ai.html',
-  '/home-work.html',
-  '/kalender.html',
-  '/profil.html',
-  '/login.html',
-  '/finish.html'
-];
+const CACHE_NAME = 'genius-v2'; // Versi diubah agar cache lama terhapus
+const urlsToCache = ['/'];
 
-// Install Service Worker dan simpan cache
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// Jalankan aplikasi dari cache jika offline
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache); // Hapus cache versi lama yang menyebabkan error
+          }
+        })
+      );
+    })
+  );
+});
+
+// Strategi: Network First (Utamakan internet, jika gagal baru ambil cache)
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response; // Gunakan file dari memori HP
-        }
-        return fetch(event.request); // Mengambil dari internet
-      })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
