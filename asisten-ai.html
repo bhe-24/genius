@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport dengan safe-area untuk mencegah tertutup bar bawah HP (iPhone/Android) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Asisten AI - Genius</title>
     
@@ -44,28 +43,28 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+        /* MENGHINDARI BUG KEYBOARD HP: MENGGUNAKAN ABSOLUTE & FIXED TINGGI LAYAR */
         html, body {
             font-family: var(--font); background: var(--bg);
-            /* Mengunci tinggi 100% dan mencegah overflow sistem HP */
-            width: 100%; height: 100%; overflow: hidden; 
-            display: flex; justify-content: center;
+            width: 100%; height: 100%; height: 100dvh; overflow: hidden; 
+            display: flex; justify-content: center; position: fixed;
         }
 
         /* ── CONTAINER UTAMA ── */
         .chat-app {
             width: 100%; max-width: 480px; height: 100%;
-            background: var(--surface); display: flex; flex-direction: column;
-            overflow: hidden; position: relative; box-shadow: var(--shadow-lg);
+            background: var(--surface); position: relative; box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column;
         }
 
-        /* ── HEADER ── */
+        /* ── HEADER (FIXED DI ATAS) ── */
         .chat-header {
             background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.95));
             backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
             color: white; padding: 14px 18px; display: flex; align-items: center; gap: 12px;
-            flex-shrink: 0; position: relative; z-index: 10; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100;
             box-shadow: 0 4px 16px rgba(30, 58, 138, 0.15); 
-            padding-top: max(14px, env(safe-area-inset-top)); /* Trik untuk iPhone Notch/Status bar */
+            padding-top: max(14px, env(safe-area-inset-top)); 
         }
 
         .bot-avatar {
@@ -93,10 +92,14 @@
         }
         .btn-back:hover { color: white; transform: translateX(2px); }
 
-        /* ── CHAT BODY (SCROLLABLE AREA) ── */
+        /* ── CHAT BODY (AREA TENGAH YANG BISA DI SCROLL) ── */
         .chat-body {
-            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 16px 8px;
-            background: var(--surface); display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth;
+            /* Mendorong konten agar tidak tertutup header & footer fixed */
+            padding-top: calc(75px + env(safe-area-inset-top)); 
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            padding-left: 16px; padding-right: 16px;
+            overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+            height: 100%; display: flex; flex-direction: column; gap: 8px;
         }
 
         .chat-body::-webkit-scrollbar { width: 4px; }
@@ -135,6 +138,7 @@
             display: none; align-self: flex-start; background: rgba(255, 255, 255, 0.95);
             padding: 12px 16px; border-radius: 4px var(--radius-bubble) var(--radius-bubble) var(--radius-bubble);
             border: 1px solid rgba(225, 234, 245, 0.8); box-shadow: var(--shadow-md); gap: 6px; align-items: center;
+            margin-bottom: 20px;
         }
         .typing-indicator.visible { display: flex; }
 
@@ -148,13 +152,13 @@
 
         @keyframes typingBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-6px); opacity: 1; } }
 
-        /* ── FOOTER INPUT (DIPERBAIKI UNTUK LAYAR HP) ── */
+        /* ── FOOTER INPUT (FIXED DI BAWAH & ANTI BUG KEYBOARD) ── */
         .chat-footer {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
             padding: 12px 14px; 
-            /* Menggunakan env() untuk memastikan input box tidak tertutup gesture bar iPhone/Android */
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
             background: rgba(255, 255, 255, 0.98); border-top: 1px solid rgba(225, 234, 245, 0.8);
-            display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0;
+            display: flex; gap: 10px; align-items: flex-end; 
             box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
         }
 
@@ -177,7 +181,7 @@
         .btn-send:active:not(:disabled) { transform: scale(0.94); }
         .btn-send:disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.6; }
 
-        /* ── EXIT MODAL (DIBERSIHKAN MINIMALIS) ── */
+        /* ── EXIT MODAL (DIBERSIHKAN MINIMALIS & MODERN) ── */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -193,33 +197,33 @@
         }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 25px; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 25px; }
 
-        .modal-btns { display: flex; flex-direction: column; gap: 12px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
         .modal-btn { 
             padding: 14px; border-radius: 12px; font-weight: 600; font-size: 0.95rem; 
             cursor: pointer; transition: 0.2s; border: none;
             display: flex; justify-content: center; align-items: center; gap: 8px;
         }
         
-        /* Tombol Simpan (Biru) */
-        .modal-btn-save { background: var(--blue-light); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        .modal-btn-save:active { background: var(--blue-dark); transform: scale(0.97); }
+        /* Tombol Simpan (Biru Terang) */
+        .modal-btn-save { background: var(--blue-gradient); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .modal-btn-save:active { transform: scale(0.97); }
 
-        /* Tombol Hapus (Merah) */
-        .modal-btn-delete { background: #EF4444; color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-        .modal-btn-delete:active { background: #DC2626; transform: scale(0.97); }
+        /* Tombol Hapus (Transparan Merah) */
+        .modal-btn-delete { background: rgba(239, 68, 68, 0.1); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .modal-btn-delete:active { background: #DC2626; color: white; transform: scale(0.97); }
         
-        /* Teks Batal */
-        .modal-btn-cancel { background: transparent; color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;}
-        .modal-btn-cancel:active { color: var(--text-primary); }
+        /* Tombol Batal (Abu-abu kotak elegan) */
+        .modal-btn-cancel { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0;}
+        .modal-btn-cancel:active { background: #E2E8F0; transform: scale(0.97); }
 
     </style>
 </head>
 <body>
 
     <div class="chat-app">
-        <!-- HEADER -->
+        <!-- HEADER (FIXED) -->
         <div class="chat-header">
             <div class="bot-avatar">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius">
@@ -234,16 +238,19 @@
             </button>
         </div>
 
-        <!-- CHAT BODY -->
+        <!-- CHAT BODY (SCROLLABLE AREA) -->
         <div class="chat-body" id="chat-box">
             <!-- Messages rendered here via Firebase -->
         </div>
 
-        <div class="typing-indicator" id="typing">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <!-- LOADING MUNCUL DI DALAM CHAT BODY AGAR TIDAK TERTUTUP INPUT -->
+        <div class="chat-body" style="flex: none; padding: 0 16px;">
+            <div class="typing-indicator" id="typing">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
         </div>
 
-        <!-- INPUT FORM -->
+        <!-- INPUT FORM (FIXED BOTTOM) -->
         <form class="chat-footer" id="chat-form">
             <div class="input-wrap">
                 <textarea id="chat-input" class="input-box" placeholder="Ketik pesan atau /add tugas..." autocomplete="off" rows="1" disabled></textarea>
@@ -254,14 +261,14 @@
         </form>
     </div>
 
-    <!-- EXIT MODAL (MINIMALIS) -->
+    <!-- EXIT MODAL (MINIMALIS & MODERN) -->
     <div id="exit-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">Keluar Asisten AI</div>
             <div class="modal-btns">
                 <button class="modal-btn modal-btn-save" id="btn-save-exit">Simpan Chat</button>
                 <button class="modal-btn modal-btn-delete" id="btn-delete-exit">Hapus Chat</button>
-                <button class="modal-btn-cancel" id="btn-cancel-exit">Batal</button>
+                <button class="modal-btn modal-btn-cancel" id="btn-cancel-exit">Batal</button>
             </div>
         </div>
     </div>
@@ -302,11 +309,17 @@
         let currentUser = null;
         let isFetchingFirstTime = true; 
 
-        // ── AUTO RESIZE & ENTER LOGIC ──
+        // ── AUTO RESIZE & SCROLL LOGIC SAAT NGETIK ──
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
             btnSend.disabled = chatInput.value.trim() === '';
+        });
+
+        chatInput.addEventListener('focus', () => {
+            setTimeout(() => {
+                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+            }, 300); // Menunggu keyboard muncul sebelum otomatis scroll turun
         });
 
         chatInput.addEventListener('keydown', (e) => {
@@ -330,6 +343,7 @@
             const bubble = document.createElement('div');
             bubble.className = `bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`;
             
+            // Membersihkan teks dari bawaan sistem AI jika terlewat di server
             let cleanText = text;
             if (isBot) {
                 cleanText = cleanText.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -385,18 +399,16 @@
             }
         });
 
-        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SPESIFIK ──
+        // ── FUNGSI PERAPI TEKS & EKSTRAK TANGGAL SUPER SAKTI (ANTI TYPO) ──
         function formatTaskInput(rawText) {
-            let text = rawText.substring(4).trim(); // Buang kata '/add'
+            let text = rawText.substring(4).trim(); 
             
-            // 1. Logika Tanggal Cerdas
             let targetDate = new Date();
             let timeStr = "Belum disetel";
             let dateFound = false;
 
             const lowerText = text.toLowerCase();
 
-            // Cek kata kunci hari biasa
             if (lowerText.includes('hari ini')) {
                 dateFound = true;
             } else if (lowerText.includes('besok')) {
@@ -409,8 +421,8 @@
                 targetDate.setDate(targetDate.getDate() + 7);
                 dateFound = true;
             } else {
-                // REGEX SAKTI: Cek format "tanggal 25 agustus" atau "tgl 25"
-                const dateRegex = /(?:tanggal|tgl|deadline)\s+(\d{1,2})(?:\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|jun|jul|agu|sep|okt|nov|des))?(?:\s+(\d{4}))?/i;
+                // REGEX SAKTI: Membaca teks "dealdintanggal", "tgl", "batas", dsb meskipun typo/tanpa spasi.
+                const dateRegex = /(?:tangg?al|tgl|deadline|dealdin|batas|kumpul)[a-z\s:-]*(\d{1,2})(?:\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des))?(?:\s+(\d{4}))?/i;
                 const match = text.match(dateRegex);
 
                 if (match) {
@@ -423,6 +435,12 @@
                         const monthStr = match[2].toLowerCase().substring(0, 3);
                         const foundMonth = monthNames.indexOf(monthStr);
                         if (foundMonth !== -1) month = foundMonth;
+                    } else {
+                        // LOGIKA CERDAS: Jika angka hari yang diketik jauh lebih kecil dari hari ini, asumsikan itu untuk bulan depan.
+                        // (Misal hari ini tgl 24, lalu diketik "tanggal 5", maka jadinya tanggal 5 bulan depan).
+                        if (day < targetDate.getDate() && (targetDate.getDate() - day) > 10) {
+                            month += 1;
+                        }
                     }
 
                     if (match[3]) {
@@ -444,7 +462,7 @@
             const dd = String(targetDate.getDate()).padStart(2, '0');
             const dateKey = `${yyyy}-${mm}-${dd}`;
 
-            // 2. Ekstrak Judul Tugas Cerdas
+            // Ekstrak Judul Tugas Cerdas
             let title = "Tugas Baru";
             const subjectMatch = text.match(/(?:tugas|pr|project|laporan|makalah)\s+([a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)?)/i);
             
@@ -454,7 +472,6 @@
                 title = "Tugas: " + text.split(' ').slice(0, 2).join(' ') + "...";
             }
 
-            // 3. Instruksi utuh
             let instruction = text.charAt(0).toUpperCase() + text.slice(1) + ".";
 
             return { title, instruction, dateKey, time: timeStr };
@@ -488,7 +505,6 @@
                 });
             }
 
-            chatBox.appendChild(typingIndicator);
             typingIndicator.classList.add('visible');
             chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
 
@@ -518,7 +534,7 @@
             }
         });
 
-        // ── LOGIKA MODAL EXIT & DELETE MINIMALIS ──
+        // ── LOGIKA MODAL EXIT & DELETE ──
         document.getElementById('btn-open-modal').addEventListener('click', () => {
             exitModal.classList.add('active');
             chatInput.blur();
@@ -544,7 +560,6 @@
             btnDel.disabled = true;
 
             try {
-                // Menghapus history chat tanpa mengganggu kalender/tasks
                 const q = query(collection(db, "users", currentUser.uid, "chats"));
                 const querySnapshot = await getDocs(q);
                 
