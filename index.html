@@ -18,15 +18,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
- <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "ecc3da18-8ac0-43ab-8346-fca21f11fa07",
-    });
-  });
-</script>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "ecc3da18-8ac0-43ab-8346-fca21f11fa07",
+        });
+      });
+    </script>
 
     <style>
         :root {
@@ -47,8 +47,14 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; text-decoration: none; -webkit-tap-highlight-color: transparent; }
 
-        /* BODY & WRAPPER DIPERBAIKI AGAR HEADER FIXED SEMPURNA */
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; justify-content: center; height: 100dvh; overflow: hidden; }
+        /* BODY & WRAPPER FIXED NATIVE */
+        html, body {
+            width: 100%; height: 100%; 
+            overflow: hidden; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            display: flex; justify-content: center;
+        }
 
         .mobile-wrapper {
             width: 100%; max-width: 480px; height: 100%;
@@ -57,12 +63,18 @@
             overflow: hidden;
         }
 
-        /* HEADER APP (BENAR-BENAR FIXED) */
+        /* HEADER APP FIXED */
         header {
             background-color: var(--white); padding: 14px 20px;
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: var(--shadow-sm); z-index: 1000; flex-shrink: 0;
             padding-top: max(14px, env(safe-area-inset-top)); 
+        }
+
+        /* AREA KONTEN SCROLLABLE */
+        .scrollable-content {
+            flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column;
+            min-height: 0;
         }
 
         .brand { display: flex; align-items: center; gap: 10px; }
@@ -87,12 +99,7 @@
         }
         .btn-install:active { transform: scale(0.95); }
 
-        /* KONTEN UTAMA YANG BISA DI-SCROLL */
-        .scrollable-content {
-            flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column;
-        }
-
-        /* --- SKELETON SHIMMER EFFECT --- */
+        /* SKELETON SHIMMER */
         .skeleton-box { position: relative; overflow: hidden; background-color: #CBD5E1; border-radius: 8px; }
         .skeleton-box::after {
             content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; transform: translateX(-100%);
@@ -104,7 +111,7 @@
         .skeleton-dark { background-color: rgba(255, 255, 255, 0.2); }
         .skeleton-dark::after { background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0, rgba(255,255,255, 0.2) 20%, rgba(255,255,255, 0) 40%); }
 
-        /* DASHBOARD HERO SECTION */
+        /* HERO SECTION */
         .dashboard-hero {
             background: var(--blue-gradient); padding: 30px 20px 40px;
             color: var(--white); border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
@@ -164,8 +171,12 @@
         .menu-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--blue-dark); }
         .menu-card p { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 
-        /* FOOTER PROFESIONAL */
-        footer { background: var(--white); border-top: 1px solid #E2E8F0; padding: 20px; text-align: center; flex-shrink: 0; }
+        /* FOOTER */
+        footer { 
+            background: var(--white); border-top: 1px solid #E2E8F0; 
+            padding: 20px; text-align: center; flex-shrink: 0; margin-top: auto;
+            padding-bottom: calc(30px + env(safe-area-inset-bottom)); 
+        }
         .footer-brand { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 10px; }
         .footer-brand img { height: 20px; opacity: 0.8; }
         .footer-brand span { font-size: 12px; font-weight: 700; color: var(--text-muted); }
@@ -179,10 +190,9 @@
 </head>
 <body>
 
-    <!-- WRAPPER MOBILE -->
     <div class="mobile-wrapper">
         
-        <!-- HEADER (FIXED/STICKY SEMPURNA) -->
+        <!-- HEADER (FIXED) -->
         <header>
             <div class="brand">
                 <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Logo">
@@ -193,24 +203,20 @@
             </div>
             
             <div class="auth-container-wrapper">
-                <!-- Tombol Install PWA Pintar -->
                 <button id="btn-install" class="btn-install">
                     <i class="ph-bold ph-download-simple"></i> App
                 </button>
                 
-                <!-- Auth Buttons -->
                 <div class="auth-buttons" id="auth-container">
                     <div class="skeleton-box" style="width: 70px; height: 32px; border-radius: 30px;"></div>
                 </div>
             </div>
         </header>
 
-        <!-- KONTEN YANG BISA DI-SCROLL -->
+        <!-- KONTEN SCROLLABLE -->
         <div class="scrollable-content">
 
-            <!-- ============================================== -->
-            <!-- VIEW 1: SKELETON LOADING (Tampil Saat Memuat) -->
-            <!-- ============================================== -->
+            <!-- SKELETON LOADING -->
             <main id="main-skeleton" style="display:flex; flex-direction:column;">
                 <section class="dashboard-hero">
                     <div class="dash-header">
@@ -244,10 +250,8 @@
                 </section>
             </main>
 
-            <!-- ============================================== -->
-            <!-- VIEW 2: KONTEN ASLI (Tampil Setelah Data Ditarik) -->
-            <!-- ============================================== -->
-            <main id="main-content" style="display:none; flex-direction:column;">
+            <!-- KONTEN ASLI -->
+            <main id="main-content" style="display:none; flex-direction:column; flex:1;">
                 
                 <section class="dashboard-hero">
                     <div class="dash-header">
@@ -304,30 +308,28 @@
                     </div>
                 </section>
                 
-                <!-- FOOTER -->
-                <footer>
-                    <div class="footer-brand">
-                        <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
-                        <span>GENIUS HOME WORK</span>
-                    </div>
-                    <div class="footer-links">
-                        <a href="index.html">Beranda</a>
-                        <a href="home-work.html">Ruang Tugas</a>
-                        <a href="kalender.html">Jadwal</a>
-                        <a href="asisten-ai.html">Pusat Bantuan AI</a>
-                    </div>
-                    <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
-                </footer>
-                
             </main>
 
-        </div> <!-- END SCROLLABLE CONTENT -->
+            <!-- FOOTER -->
+            <footer>
+                <div class="footer-brand">
+                    <img src="https://i.imgur.com/PpxQu9m.png" alt="Genius Icon">
+                    <span>GENIUS HOME WORK</span>
+                </div>
+                <div class="footer-links">
+                    <a href="index.html">Beranda</a>
+                    <a href="home-work.html">Ruang Tugas</a>
+                    <a href="kalender.html">Jadwal</a>
+                    <a href="asisten-ai.html">Pusat Bantuan AI</a>
+                </div>
+                <p class="copyright">&copy; <span id="current-year">2026</span> Genius App. Hak Cipta Dilindungi.</p>
+            </footer>
 
-    </div> <!-- END MOBILE WRAPPER -->
+        </div>
 
-    <!-- ========================================== -->
-    <!-- SCRIPT INSTALL PWA & SERVICE WORKER        -->
-    <!-- ========================================== -->
+    </div>
+
+    <!-- PWA INSTALL SCRIPT -->
     <script>
         let deferredPrompt;
         const installBtn = document.getElementById('btn-install');
@@ -360,12 +362,13 @@
         }
     </script>
 
-    <!-- LOGIKA JAVASCRIPT & DATABASE REALTIME -->
+    <!-- FIREBASE REALTIME SYNC (ONSNAPSHOT) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, query, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // Jam & Tanggal Realtime
         function updateClock() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -401,55 +404,78 @@
         const contentView = document.getElementById('main-content');
 
         function hideSkeleton() {
-            skeletonView.style.display = 'none';
-            contentView.style.display = 'flex';
+            if (skeletonView.style.display !== 'none') {
+                skeletonView.style.display = 'none';
+                contentView.style.display = 'flex';
+            }
         }
 
-        onAuthStateChanged(auth, async (user) => {
+        // Simpan listener aktif agar bisa dibersihkan jika berganti akun
+        let unsubUser = null;
+        let unsubTasks = null;
+        let unsubChats = null;
+
+        function stopListeners() {
+            if (unsubUser) unsubUser();
+            if (unsubTasks) unsubTasks();
+            if (unsubChats) unsubChats();
+        }
+
+        // 1. Pantau Status Login
+        onAuthStateChanged(auth, (user) => {
+            stopListeners(); // Reset listener sebelumnya
+
             if (user) {
                 authContainer.innerHTML = `
                     <a href="profil.html" class="btn btn-primary">
                         <i class="ph-bold ph-user"></i> Profil
                     </a>
                 `;
-                
-                try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
+
+                // A. Realtime Profil Pengguna
+                unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                     if (docSnap.exists()) {
                         const namaLengkap = docSnap.data().name || 'Pengguna';
                         const namaPanggilan = namaLengkap.split(' ')[0];
                         userGreeting.innerText = `Halo, ${namaPanggilan}!`;
                     }
+                    hideSkeleton();
+                }, (error) => {
+                    console.error("User sync error:", error);
+                    hideSkeleton();
+                });
 
-                    const qTasks = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
-                    const taskSnap = await getDocs(qTasks);
-                    
-                    if (!taskSnap.empty) {
-                        const taskCount = taskSnap.size;
+                // B. Realtime Sinkronisasi Tugas Pending
+                const qTasks = query(collection(db, "users", user.uid, "tasks"), where("status", "==", "pending"));
+                unsubTasks = onSnapshot(qTasks, (snapshot) => {
+                    const taskCount = snapshot.size;
+                    if (taskCount > 0) {
                         taskAlertText.innerHTML = `Kamu memiliki <b>${taskCount} tugas</b> tertunda hari ini.`;
                         taskAlert.style.display = 'flex';
                     } else {
                         taskAlert.style.display = 'none';
                     }
+                    hideSkeleton();
+                }, (error) => {
+                    console.error("Tasks sync error:", error);
+                    hideSkeleton();
+                });
 
-                    const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc"), limit(1));
-                    const chatSnap = await getDocs(qChat);
-                    
-                    if (!chatSnap.empty) {
-                        const lastChat = chatSnap.docs[0].data();
+                // C. Realtime Obrolan Terakhir
+                const qChat = query(collection(db, "users", user.uid, "chats"), orderBy("createdAt", "desc"), limit(1));
+                unsubChats = onSnapshot(qChat, (snapshot) => {
+                    if (!snapshot.empty) {
+                        const lastChat = snapshot.docs[0].data();
                         const chatMsg = lastChat.message || lastChat.text || "Mengirim lampiran/gambar.";
                         recentChatBubble.innerHTML = `<p class="chat-text">"${chatMsg}"</p>`;
                     } else {
                         recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada obrolan. Mulai sapa Asisten AI sekarang.</p>`;
                     }
-
-                } catch (error) {
-                    userGreeting.innerText = `Halo, Pengguna!`;
-                    taskAlert.style.display = 'none';
-                    recentChatBubble.innerHTML = `<p class="chat-empty">Belum ada riwayat obrolan.</p>`;
-                } finally {
                     hideSkeleton();
-                }
+                }, (error) => {
+                    console.error("Chats sync error:", error);
+                    hideSkeleton();
+                });
 
             } else {
                 authContainer.innerHTML = `
@@ -457,10 +483,17 @@
                     <a href="login.html" class="btn btn-primary">Daftar</a>
                 `;
                 userGreeting.innerText = `Halo, Selamat Datang!`;
-                
                 taskAlert.style.display = 'none';
                 recentChatBubble.innerHTML = `<p class="chat-empty">Silakan masuk untuk melihat riwayat obrolan AI Anda.</p>`;
                 hideSkeleton();
+            }
+        });
+
+        // 2. Deteksi Navigasi Back HP (BFCache Support)
+        window.addEventListener('pageshow', (event) => {
+            // Jika halaman dimuat dari cache navigasi HP, listener onSnapshot tetap aktif sinkron
+            if (event.persisted && auth.currentUser) {
+                console.log("Navigasi kembali terdeteksi: Data realtime tetap terhubung.");
             }
         });
     </script>
