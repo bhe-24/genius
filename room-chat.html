@@ -109,7 +109,9 @@
 
         .bubble {
             padding: 10px 14px; font-size: 0.85rem; line-height: 1.5; word-break: break-word;
-            border-radius: 12px; position: relative; box-shadow: var(--shadow-sm); cursor: pointer;
+            border-radius: 12px; position: relative; box-shadow: var(--shadow-sm); 
+            /* Disable selection untuk HP agar event Long Press lancar */
+            user-select: none; -webkit-user-select: none;
         }
         .message-row.incoming .bubble { background: var(--bubble-incoming); color: var(--text-primary); border-top-left-radius: 2px; }
         .message-row.outgoing .bubble { background: var(--bubble-outgoing); color: var(--text-primary); border-top-right-radius: 2px; }
@@ -123,7 +125,7 @@
         /* FOOTER INPUT */
         .chat-footer {
             flex-shrink: 0; padding: 10px 12px; 
-            padding-bottom: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             background: rgba(248, 250, 252, 0.98); border-top: 1px solid #E2E8F0;
             display: flex; gap: 8px; align-items: flex-end; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 100;
         }
@@ -208,6 +210,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- FIX TINGGI LAYAR DINAMIS -->
+    <script>
+        (function () {
+            function setAppHeight() {
+                var vv = window.visualViewport;
+                var h = vv ? vv.height : window.innerHeight;
+                document.documentElement.style.setProperty('--app-height', h + 'px');
+            }
+            setAppHeight();
+            window.addEventListener('resize', setAppHeight);
+            window.addEventListener('orientationchange', setAppHeight);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setAppHeight);
+            }
+        })();
+    </script>
+
     <!-- FIREBASE & LOGIC CHAT ROOM -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -227,13 +246,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Ambil ID Ruangan dari URL parameter (contoh: room-chat.html?id=849201)
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('id');
 
-        if (!roomId) {
-            window.location.href = 'ruang-belajar.html';
-        }
+        if (!roomId) window.location.href = 'ruang-belajar.html';
 
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
@@ -247,7 +263,16 @@
 
         let currentUser = null;
         let currentUserName = "Pengguna";
-        let roomCodeValue = roomId;
+
+        // MENGAMBIL CACHE PESAN LAMA AGAR TIDAK LOADING PUTIH SAAT BARU DIBUKA
+        const CACHE_KEY = `chat_room_${roomId}`;
+        const cachedMessages = localStorage.getItem(CACHE_KEY);
+        if (cachedMessages) {
+            const msgs = JSON.parse(cachedMessages);
+            chatBox.innerHTML = '';
+            msgs.forEach(msg => renderMessageBubble(msg.id, msg, false)); // false = jangan scroll dulu
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
         // 1. CEK AUTENTIKASI & NAMA PENGGUNA
         onAuthStateChanged(auth, async (user) => {
@@ -255,15 +280,11 @@
                 currentUser = user;
                 roomCodeTxt.innerText = `Kode: ${roomId}`;
                 
-                // Ambil Nama Asli Pengguna dari Firestore
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        currentUserName = (userDoc.data().name || 'Pengguna').split(' ')[0];
-                    }
+                    if (userDoc.exists()) currentUserName = (userDoc.data().name || 'Pengguna').split(' ')[0];
                 } catch(e) {}
 
-                // Ambil Info Ruangan
                 const roomDoc = await getDoc(doc(db, "rooms", roomId));
                 if (roomDoc.exists()) {
                     roomNameEl.innerText = roomDoc.data().name;
@@ -271,7 +292,6 @@
                     roomNameEl.innerText = "Ruang Diskusi";
                 }
 
-                // Mulai Mendengarkan Pesan Real-Time
                 listenToMessages();
             } else {
                 window.location.href = 'login.html';
@@ -281,24 +301,15 @@
         // SALIN KODE RUANGAN KETIKA HEADER DIKETUK
         btnRoomInfo.addEventListener('click', () => {
             navigator.clipboard.writeText(roomId);
-            Swal.fire({
-                toast: true,
-                position: 'top',
-                icon: 'success',
-                title: `Kode ruangan ${roomId} disalin!`,
-                showConfirmButton: false,
-                timer: 1500
-            });
+            Swal.fire({ toast: true, position: 'top', icon: 'success', title: `Kode ruangan ${roomId} disalin!`, showConfirmButton: false, timer: 1500 });
         });
 
-        // 2. REALTIME LISTENER PESAN DALAM RUANGAN
+        // 2. REALTIME LISTENER PESAN
         function listenToMessages() {
             const msgRef = collection(db, "rooms", roomId, "messages");
             const q = query(msgRef, orderBy("createdAt", "asc"));
 
             onSnapshot(q, (snapshot) => {
-                chatBox.innerHTML = '';
-                
                 if (snapshot.empty) {
                     chatBox.innerHTML = `
                         <div style="text-align: center; color: var(--text-muted); margin-top: 40px; font-size: 0.8rem;">
@@ -306,31 +317,51 @@
                             Belum ada pesan. Mulai kirim sapaan atau gambar diskusi di sini!
                         </div>
                     `;
+                    localStorage.removeItem(CACHE_KEY);
                     return;
                 }
+
+                // Cek apakah ada pesan baru dengan membandingkan jumlah pesan lama di layar
+                const isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < 100;
+                
+                chatBox.innerHTML = '';
+                const messagesToCache = [];
 
                 snapshot.forEach((docSnap) => {
                     const msg = docSnap.data();
                     const msgId = docSnap.id;
-                    renderMessageBubble(msgId, msg);
+                    
+                    // Format waktu sebelum masuk ke memori lokal
+                    if (msg.createdAt) msg.timestamp = msg.createdAt.toMillis();
+                    
+                    renderMessageBubble(msgId, msg, false);
+                    messagesToCache.push({ id: msgId, ...msg });
                 });
 
-                chatBox.scrollTop = chatBox.scrollHeight;
+                // Simpan obrolan ke memori HP (Cache)
+                localStorage.setItem(CACHE_KEY, JSON.stringify(messagesToCache));
+
+                // Otomatis scroll ke bawah jika kita sedang berada di bagian bawah
+                if (isAtBottom) {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
             });
         }
 
-        // 3. RENDER BUBBLE CHAT DENGAN OPSI HAPUS & ZOOM GAMBAR
-        function renderMessageBubble(msgId, msg) {
-            const isOutgoing = msg.senderId === currentUser.uid;
+        // 3. RENDER BUBBLE CHAT DENGAN LOGIKA "LONG PRESS" UNTUK HAPUS & "TAP" UNTUK ZOOM
+        function renderMessageBubble(msgId, msg, autoScroll = true) {
+            const isOutgoing = msg.senderId === currentUser?.uid;
             
             const row = document.createElement('div');
             row.className = `message-row ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
-            const timeStr = msg.createdAt ? new Date(msg.createdAt.toMillis()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Baru saja';
+            const timeValue = msg.timestamp ? new Date(msg.timestamp) : (msg.createdAt ? new Date(msg.createdAt.toMillis()) : new Date());
+            const timeStr = timeValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             let imageHtml = '';
             if (msg.imageBase64) {
-                imageHtml = `<img src="${msg.imageBase64}" alt="Lampiran" class="chat-img" onclick="openLightbox('${msg.imageBase64}')">`;
+                // Class chat-img digunakan agar JS mengenali bahwa ini gambar yang bisa di-zoom
+                imageHtml = `<img src="${msg.imageBase64}" alt="Lampiran" class="chat-img" data-src="${msg.imageBase64}">`;
             }
 
             let textHtml = '';
@@ -350,30 +381,62 @@
                 </div>
             `;
 
-            // Fitur Hapus Pesan jika diketuk dan itu pesan milik sendiri
-            if (isOutgoing) {
-                row.querySelector('.bubble').addEventListener('click', () => {
-                    Swal.fire({
-                        title: 'Hapus Pesan?',
-                        text: 'Pesan ini akan dihapus untuk semua anggota.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Hapus',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#EF4444'
-                    }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            try {
-                                await deleteDoc(doc(db, "rooms", roomId, "messages", msgId));
-                            } catch(e) {
-                                Swal.fire('Error', 'Gagal menghapus pesan.', 'error');
+            const bubbleEl = row.querySelector('.bubble');
+            const imgEl = row.querySelector('.chat-img');
+
+            // --- LOGIKA LONG PRESS (TAHAN 600ms UNTUK MENGHAPUS PESAN) ---
+            let pressTimer;
+            let isLongPress = false;
+
+            const startPress = (e) => {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true; // Tandai bahwa ini adalah penekanan lama
+                    if (isOutgoing) {
+                        Swal.fire({
+                            title: 'Hapus Pesan?',
+                            text: 'Pesan ini akan ditarik untuk semua orang.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Hapus',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#EF4444'
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                try {
+                                    await deleteDoc(doc(db, "rooms", roomId, "messages", msgId));
+                                } catch(e) {
+                                    Swal.fire('Error', 'Gagal menghapus pesan.', 'error');
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                }, 600); // 600 milidetik
+            };
+
+            const endPress = (e) => {
+                clearTimeout(pressTimer);
+            };
+
+            bubbleEl.addEventListener('touchstart', startPress, {passive: true});
+            bubbleEl.addEventListener('mousedown', startPress);
+            bubbleEl.addEventListener('touchend', endPress);
+            bubbleEl.addEventListener('mouseup', endPress);
+            bubbleEl.addEventListener('touchmove', endPress); // Batal jika jari digeser
+
+            // --- LOGIKA TAP BIASA (UNTUK ZOOM GAMBAR) ---
+            if (imgEl) {
+                imgEl.addEventListener('click', (e) => {
+                    // Jika tadi ditahan lama (Long Press), Batal Zoom. Jika klik cepat, Zoom!
+                    if (!isLongPress) {
+                        e.stopPropagation(); // Mencegah bentrok
+                        openLightbox(imgEl.getAttribute('data-src'));
+                    }
                 });
             }
 
             chatBox.appendChild(row);
+            if (autoScroll) chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         // Fungsionalitas Lightbox Zoom Gambar
@@ -403,7 +466,7 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // Batasi lebar maksimal 800px
+                    const MAX_WIDTH = 800; 
                     const MAX_HEIGHT = 800;
                     let width = img.width;
                     let height = img.height;
@@ -425,19 +488,17 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Kompres ke format JPEG kualitas 0.7 agar ukuran Base64 sangat kecil (< 200KB)
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     
-                    // Kirim otomatis setelah dipilih
                     sendChatMessage("", compressedBase64);
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-            imageInput.value = ''; // Reset input file
+            imageInput.value = ''; 
         });
 
-        // 5. KIRIM PESAN TEKS & KIRIM KE FIRESTORE
+        // 5. KIRIM PESAN TEKS
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
@@ -449,6 +510,10 @@
                 e.preventDefault();
                 chatForm.dispatchEvent(new Event('submit'));
             }
+        });
+
+        chatInput.addEventListener('focus', () => {
+            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 300);
         });
 
         chatForm.addEventListener('submit', (e) => {
@@ -481,7 +546,6 @@
             }
         }
 
-        // Keamanan XSS Sederhana
         function escapeHtml(text) {
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
