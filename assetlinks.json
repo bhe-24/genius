@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.genius.app",
+        "sha256_cert_fingerprints": ["8B:63:EF:42:98:E4:82:6B:E0:3A:62:1D:18:B4:60:C4:A5:12:1F:48:C8:A6:7D:8C:C6:32:45:30:5E:BA:36:4E"]
+      }
+    }]
