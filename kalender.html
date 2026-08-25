@@ -6,10 +6,28 @@
     <title>Kalender - Genius</title>
     
     <meta name="theme-color" content="#1E3A8A">
+    <!-- FAVICON & PWA SETTINGS -->
+    <link rel="icon" href="https://i.imgur.com/PpxQu9m.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Genius">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/PpxQu9m.png">
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
+    <!-- ONESIGNAL PUSH NOTIFICATION -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "ecc3da18-8ac0-43ab-8346-fca21f11fa07",
+        });
+      });
+    </script>
+
     <style>
         :root {
             --bg-body: #E2E8F0; 
@@ -46,7 +64,8 @@
         }
 
         .header-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); display: flex; align-items: center; gap: 6px; }
-        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; }
+        .back-btn { color: var(--text-main); font-size: 24px; cursor: pointer; display: flex; text-decoration: none; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
 
         /* --- SKELETON SHIMMER EFFECT --- */
         .skeleton-box {
@@ -128,7 +147,6 @@
         .empty-state i { font-size: 48px; color: #CBD5E1; margin-bottom: 10px; }
         .empty-state p { font-size: 13px; line-height: 1.5; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -166,7 +184,6 @@
                     <div class="skeleton-box" style="height:12px; margin: 0 4px;"></div>
                 </div>
                 <div class="days-grid">
-                    <!-- 35 kotak skeleton (5 baris x 7 hari) -->
                     <script>
                         for(let i=0; i<35; i++){
                             document.write('<div class="skeleton-box" style="aspect-ratio:1; border-radius:50%;"></div>');
@@ -201,7 +218,7 @@
                 </div>
                 
                 <div class="days-grid" id="calendar-days">
-                    <!-- Sel akan dirender JS -->
+                    <!-- Sel dirender JS -->
                 </div>
             </div>
 
@@ -212,7 +229,7 @@
                 </div>
                 
                 <div class="task-list" id="task-list-container">
-                    <!-- Daftar tugas akan masuk ke sini -->
+                    <!-- Daftar tugas -->
                 </div>
             </div>
         </main>
@@ -238,15 +255,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // UI Wrapper
         const skeletonView = document.getElementById('skeleton-view');
         const realContent = document.getElementById('real-content');
 
-        // DATA PENYIMPANAN TUGAS REAL DARI FIREBASE
+        // DATA PENYIMPANAN
         let realTasks = {}; 
         let currentUser = null;
 
-        // VARIABEL KALENDER
         let currentDate = new Date(); 
         let selectedDate = new Date(); 
 
@@ -257,15 +272,27 @@
         const taskListContainer = document.getElementById('task-list-container');
         const selectedDateText = document.getElementById('selected-date-text');
 
+        // CACHE NOTIFIKASI AGAR TIDAK SPAM
+        const NOTIFIED_CACHE_KEY = 'genius_notified_tasks';
+        let notifiedTasks = JSON.parse(localStorage.getItem(NOTIFIED_CACHE_KEY) || '{}');
+
         function hideSkeleton() {
             skeletonView.style.display = 'none';
             realContent.style.display = 'flex';
         }
 
-        // 1. PANTAU LOGIN USER & TARIK DATA TUGAS
+        // Minta Izin Notifikasi Asli
+        function requestNativeNotification() {
+            if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+        }
+
+        // 1. PANTAU LOGIN USER
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
+                requestNativeNotification();
                 listenToTasks(user.uid);
             } else {
                 realTasks = {};
@@ -280,7 +307,7 @@
             }
         });
 
-        // 2. FUNGSI TARIK DATA TUGAS DARI FIRESTORE (REAL-TIME)
+        // 2. FUNGSI TARIK DATA (REAL-TIME)
         function listenToTasks(uid) {
             const q = query(collection(db, "users", uid, "tasks"), where("status", "==", "pending"));
             
@@ -304,12 +331,91 @@
                 const selDay = String(selectedDate.getDate()).padStart(2, '0');
                 showTasksForDate(`${selYear}-${selMonth}-${selDay}`, selectedDate.getDate(), monthNames[selectedDate.getMonth()], selYear);
                 
-                // Menghilangkan skeleton loading setelah data berhasil dirender
                 hideSkeleton();
+                
+                // Menjalankan pengecekan notifikasi
+                checkDeadlines();
             });
         }
 
-        // 3. FUNGSI RENDER TAMPILAN KALENDER
+        // 3. FUNGSI MESIN PENGECEK DEADLINE (Berjalan otomatis di Background)
+        function checkDeadlines() {
+            if (!currentUser || Notification.permission !== 'granted') return;
+
+            const now = new Date();
+            
+            // Periksa seluruh tugas yang belum selesai
+            Object.values(realTasks).flat().forEach(task => {
+                // Konversi string waktu dari database
+                let taskTime = "23:59"; // Default jika tidak disetel
+                if (task.time && task.time.match(/^\d{1,2}:\d{2}$/)) {
+                    taskTime = task.time;
+                }
+
+                // Bangun Format Tanggal Lengkap (ISO)
+                const deadlineDate = new Date(`${task.dateKey}T${taskTime}:00`);
+                if (isNaN(deadlineDate.getTime())) return;
+
+                // Hitung selisih waktu dalam Menit
+                const diffMs = deadlineDate - now;
+                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+                let alertType = null;
+                
+                // CEK 1: Sisa 1 Hari (1440 menit) -> Toleransi trigger antara 23.5 jam - 24 jam
+                if (diffMinutes <= 1440 && diffMinutes > 1410 && !notifiedTasks[`${task.id}_1day`]) {
+                    alertType = '1day';
+                } 
+                // CEK 2: Sisa 1 Jam (60 menit) -> Toleransi 55 - 60 menit
+                else if (diffMinutes <= 60 && diffMinutes > 50 && !notifiedTasks[`${task.id}_1hour`]) {
+                    alertType = '1hour';
+                }
+                // CEK 3: Sisa 5 Menit -> Toleransi 0 - 5 menit
+                else if (diffMinutes <= 5 && diffMinutes > 0 && !notifiedTasks[`${task.id}_5min`]) {
+                    alertType = '5min';
+                }
+
+                // Jika ada trigger cocok, kirim push notification!
+                if (alertType) {
+                    triggerPushNotification(task, alertType);
+                    // Catat ke memori agar tidak spam
+                    notifiedTasks[`${task.id}_${alertType}`] = true;
+                    localStorage.setItem(NOTIFIED_CACHE_KEY, JSON.stringify(notifiedTasks));
+                }
+            });
+        }
+
+        // Jalankan pengecekan setiap 1 Menit (60.000 ms)
+        setInterval(checkDeadlines, 60000);
+
+        // Fungsi Eksekutor PUSH NOTIFICATION
+        function triggerPushNotification(task, type) {
+            let timeMsg = "";
+            if (type === '1day') timeMsg = "Besok";
+            else if (type === '1hour') timeMsg = "Dalam 1 Jam";
+            else if (type === '5min') timeMsg = "5 Menit lagi!! Cepat selesaikan!";
+
+            const title = `⚠️ Peringatan Deadline: ${task.title}`;
+            const options = {
+                body: `Waktu tersisa: ${timeMsg}. Ketuk untuk mengumpulkan tugas sekarang.`,
+                icon: 'https://i.imgur.com/PpxQu9m.png',
+                badge: 'https://i.imgur.com/PpxQu9m.png',
+                vibrate: [300, 100, 300, 100, 300],
+                data: { url: `/home-work.html?id=${task.id}` }
+            };
+
+            // Gunakan Service Worker PWA agar notif mirip aplikasi native Android
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification(title, options);
+                });
+            } else {
+                new Notification(title, options);
+            }
+        }
+
+
+        // 4. RENDER KALENDER
         function renderCalendar() {
             calendarDays.innerHTML = "";
             const year = currentDate.getFullYear();
@@ -365,7 +471,7 @@
             }
         }
 
-        // 4. FUNGSI MENAMPILKAN DAFTAR TUGAS SAAT TANGGAL DIKLIK
+        // 5. TAMPILKAN LIST TUGAS DI BAWAH
         function showTasksForDate(dateString, day, monthName, year) {
             selectedDateText.innerText = `Jadwal pada ${day} ${monthName} ${year}`;
             taskListContainer.innerHTML = ""; 
@@ -402,7 +508,7 @@
             }
         }
 
-        // 5. TOMBOL NAVIGASI BULAN
+        // 6. NAVIGASI BULAN
         document.getElementById('prev-month').addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar();
