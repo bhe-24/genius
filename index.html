@@ -18,17 +18,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.init({
-          appId: "MASUKKAN_APP_ID_ONESIGNAL_KAMU_DISINI", 
-          safari_web_id: "web.onesignal.auto.YOUR_SAFARI_ID",
-          notifyButton: { enable: true, colors: { 'circle.background': '#1E3A8A', 'circle.foreground': 'white' } },
-        });
-      });
-    </script>
+ <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "ecc3da18-8ac0-43ab-8346-fca21f11fa07",
+    });
+  });
+</script>
 
     <style>
         :root {
