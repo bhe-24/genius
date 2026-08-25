@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ruang Belajar - Genius</title>
+    
+    <meta name="theme-color" content="#1E3A8A">
+    <link rel="icon" href="https://i.imgur.com/PpxQu9m.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/PpxQu9m.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- ONESIGNAL -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "ecc3da18-8ac0-43ab-8346-fca21f11fa07",
+        });
+      });
+    </script>
+
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --primary-light: #3B82F6;
+            --bg: #E2E8F0;
+            --surface: #F8FAFC;
+            --text-primary: #1E293B;
+            --text-muted: #64748B;
+            --blue-gradient: linear-gradient(135deg, var(--primary-light), var(--primary));
+            --shadow-sm: 0 4px 10px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 25px rgba(30, 58, 138, 0.15);
+            --font: 'Poppins', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            font-family: var(--font); background: var(--bg);
+            width: 100%; height: 100%; height: 100dvh; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center; position: fixed;
+        }
+
+        .mobile-wrapper {
+            width: 100%; max-width: 480px; height: 100%;
+            background: var(--surface); box-shadow: var(--shadow-md);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        /* HEADER */
+        .header {
+            flex-shrink: 0; background: var(--white);
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm); z-index: 10;
+            padding-top: max(16px, env(safe-area-inset-top)); 
+        }
+        .header-title { font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .back-btn { color: var(--text-primary); font-size: 24px; text-decoration: none; display: flex; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+
+        /* LIST RUANGAN */
+        .room-list {
+            flex: 1; overflow-y: auto; padding: 20px 16px;
+            display: flex; flex-direction: column; gap: 12px;
+            padding-bottom: calc(100px + env(safe-area-inset-bottom));
+        }
+
+        .room-card {
+            background: #FFFFFF; border-radius: 16px; padding: 16px;
+            display: flex; align-items: center; gap: 15px; text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #F1F5F9;
+            transition: 0.2s; cursor: pointer;
+        }
+        .room-card:active { transform: scale(0.98); background: #F8FAFC; }
+
+        .room-icon {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1); color: var(--primary-light);
+            display: flex; justify-content: center; align-items: center; font-size: 24px; flex-shrink: 0;
+        }
+
+        .room-info { flex: 1; overflow: hidden; }
+        .room-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .room-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .room-meta { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;}
+        .room-time { font-size: 10px; color: #94A3B8; font-weight: 500;}
+        .room-badge { background: var(--primary-light); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600;}
+
+        /* FAB BUTTON (+) */
+        .fab {
+            position: absolute; bottom: calc(30px + env(safe-area-inset-bottom)); right: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: var(--blue-gradient); color: white; border: none;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 28px; cursor: pointer; transition: 0.2s; z-index: 100;
+        }
+        .fab:active { transform: scale(0.9); }
+
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 60px; color: #CBD5E1; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 16px; color: var(--text-primary); margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; line-height: 1.6; }
+
+        /* SWEETALERT CUSTOM */
+        .swal2-popup { border-radius: 24px !important; padding: 20px !important; }
+        .swal2-title { font-size: 1.3rem !important; color: var(--text-primary) !important; font-family: var(--font) !important; }
+        .swal2-input { border-radius: 12px !important; font-family: var(--font) !important; font-size: 14px !important;}
+        .swal2-actions { width: 100% !important; flex-direction: column !important; gap: 10px !important;}
+        .swal2-confirm, .swal2-deny, .swal2-cancel { width: 100% !important; margin: 0 !important; border-radius: 14px !important; font-size: 14px !important; font-weight: 600 !important; font-family: var(--font) !important; padding: 14px !important;}
+    </style>
+</head>
+<body>
+
+    <div class="mobile-wrapper">
+        <header class="header">
+            <a href="index.html" class="back-btn"><i class="ph-bold ph-caret-left"></i></a>
+            <div class="header-title"><i class="ph-fill ph-users-three"></i> Ruang Belajar</div>
+            <div style="width: 24px;"></div>
+        </header>
+
+        <main class="room-list" id="room-list">
+            <div class="empty-state">
+                <i class="ph-duotone ph-spinner ph-spin"></i>
+                <p>Memuat ruangan...</p>
+            </div>
+        </main>
+
+        <!-- Tombol Tambah Grup -->
+        <button class="fab" id="btn-add-room"><i class="ph-bold ph-plus"></i></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpUWUIzPXIZN6rrNtsIqcL6VfOE2RLVl0",
+            authDomain: "mading-cf676.firebaseapp.com",
+            projectId: "mading-cf676",
+            storageBucket: "mading-cf676.firebasestorage.app",
+            messagingSenderId: "72175203671",
+            appId: "1:72175203671:web:7a0676a55beb64bc96ba12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const roomList = document.getElementById('room-list');
+        const btnAddRoom = document.getElementById('btn-add-room');
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadRooms();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // TAMPILKAN DAFTAR RUANGAN REALTIME
+        function loadRooms() {
+            // Mencari ruangan di mana UID kamu ada di dalam array 'members'
+            const q = query(collection(db, "rooms"), where("members", "array-contains", currentUser.uid));
+            
+            onSnapshot(q, (snapshot) => {
+                roomList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    roomList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="ph-duotone ph-chalkboard-teacher"></i>
+                            <h3>Belum Ada Ruangan</h3>
+                            <p>Buat ruang belajar barumu atau gabung dengan kode dari teman untuk mulai berdiskusi!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const room = doc.data();
+                    const roomCode = doc.id; // Kode 6 angka adalah ID Dokumennya
+                    
+                    // Nanti kita akan tambahkan lastMessage dan timestamp
+                    const lastMsg = room.lastMessage || `Ruangan dibuat. Kode: ${roomCode}`;
+                    
+                    roomList.innerHTML += `
+                        <a href="room-chat.html?id=${roomCode}" class="room-card">
+                            <div class="room-icon"><i class="ph-fill ph-users"></i></div>
+                            <div class="room-info">
+                                <div class="room-title">${room.name}</div>
+                                <div class="room-preview">${lastMsg}</div>
+                            </div>
+                            <div class="room-meta">
+                                <div class="room-badge">Buka</div>
+                            </div>
+                        </a>
+                    `;
+                    
+                    // Otomatis menempelkan Tag OneSignal di background agar bisa dapat notif
+                    window.OneSignalDeferred.push(function(OneSignal) {
+                        OneSignal.User.addTag("room_" + roomCode, "true");
+                    });
+                });
+            });
+        }
+
+        // LOGIKA TOMBOL PLUS (BUAT / GABUNG)
+        btnAddRoom.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Ruang Belajar',
+                text: 'Kamu ingin membuat ruang baru atau bergabung dengan ruang yang sudah ada?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<i class="ph-bold ph-plus-circle"></i> Buat Ruangan',
+                denyButtonText: '<i class="ph-bold ph-sign-in"></i> Gabung Ruangan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#1E3A8A', 
+                denyButtonColor: '#3B82F6',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    createNewRoom();
+                } else if (result.isDenied) {
+                    joinRoom();
+                }
+            });
+        });
+
+        // FUNGSI MEMBUAT RUANGAN (GENERATE 6 ANGKA)
+        async function createNewRoom() {
+            const { value: roomName } = await Swal.fire({
+                title: 'Buat Ruang Belajar',
+                input: 'text',
+                inputPlaceholder: 'Contoh: Kelompok Fisika',
+                showCancelButton: true,
+                confirmButtonText: 'Buat Sekarang',
+                confirmButtonColor: '#1E3A8A',
+                inputValidator: (value) => {
+                    if (!value) return 'Nama ruangan tidak boleh kosong!';
+                }
+            });
+
+            if (roomName) {
+                Swal.fire({title: 'Membuat ruangan...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                
+                // Membuat kode unik 6 angka
+                const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                try {
+                    // Buat dokumen di koleksi 'rooms' dengan ID berupa 6 Angka
+                    await setDoc(doc(db, "rooms", roomCode), {
+                        name: roomName,
+                        createdBy: currentUser.uid,
+                        members: [currentUser.uid], // Langsung masukkan pembuat sebagai member
+                        createdAt: serverTimestamp()
+                    });
+
+                    Swal.fire('Berhasil!', `Ruang <b>${roomName}</b> berhasil dibuat!<br>Bagikan kode ini ke temanmu: <h2 style="color:#1E3A8A; margin-top:10px;">${roomCode}</h2>`, 'success');
+                } catch (error) {
+                    Swal.fire('Error', 'Gagal membuat ruangan: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // FUNGSI GABUNG RUANGAN DENGAN KODE
+        async function joinRoom() {
+            const { value: code } = await Swal.fire({
+                title: 'Gabung Ruangan',
+                input: 'number',
+                inputPlaceholder: 'Masukkan 6 angka kode',
+                showCancelButton: true,
+                confirmButtonText: 'Gabung',
+                confirmButtonColor: '#3B82F6',
+                inputValidator: (value) => {
+                    if (!value || value.length !== 6) return 'Kode harus terdiri dari 6 angka!';
+                }
+            });
+
+            if (code) {
+                Swal.fire({title: 'Mencari ruangan...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                
+                try {
+                    const roomRef = doc(db, "rooms", code);
+                    const roomSnap = await getDoc(roomRef);
+
+                    if (roomSnap.exists()) {
+                        // Jika ruangan ada, tambahkan UID kita ke array members
+                        await updateDoc(roomRef, {
+                            members: arrayUnion(currentUser.uid)
+                        });
+                        Swal.fire('Berhasil!', `Kamu berhasil bergabung ke ruangan <b>${roomSnap.data().name}</b>!`, 'success');
+                    } else {
+                        Swal.fire('Tidak Ditemukan', 'Ruangan dengan kode tersebut tidak ada.', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Gagal bergabung: ' + error.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
