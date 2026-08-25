@@ -1,10 +1,10 @@
 {
   "name": "Genius Home Work",
   "short_name": "Genius",
-  "description": "Asisten Belajar Cerdas & Otomatis",
+  "description": "Asisten Belajar Pintar & Otomatis",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#F8FAFC",
+  "background_color": "#1E3A8A",
   "theme_color": "#1E3A8A",
   "orientation": "portrait-primary",
   "icons": [
